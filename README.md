@@ -1,118 +1,128 @@
-````txt
-<!--
-  SigaaUI — README
-  Repo: https://github.com/RubsNeto/SigaaUI
--->
+Aqui vai um **README (em .txt) totalmente refeito**, com **início 100% profissional** (sem cara de “prompt”), e com **design/efeitos/animações** no estilo dos READMEs mais comuns em projetos open-source.
 
+> Copie e cole no seu `README.md` (ou num `.txt` e depois renomeia pra `README.md`).
+
+````txt
 <div align="center">
 
-<img
-  src="https://capsule-render.vercel.app/api?type=waving&color=0:141c2e,50:1e2940,100:0891b2&height=210&section=header&text=SigaaUI&fontSize=58&fontAlignY=35&desc=Redesign%20moderno%20do%20SIGAA%20UFJ%20%28Portal%20do%20Discente%20%2B%20Relat%C3%B3rio%20de%20Notas%29&descAlignY=58&animation=twinkling"
-/>
+<img alt="SigaaUI banner" src="https://capsule-render.vercel.app/api?type=waving&color=0:141c2e,50:1e2940,100:0891b2&height=220&section=header&text=SigaaUI&fontSize=56&fontAlignY=38&desc=UI%20moderna%20para%20o%20SIGAA%20UFJ%20%E2%80%94%20Userscript%20(Tampermonkey%20%2F%20Greasemonkey)&descAlignY=62&animation=twinkling" />
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=700&size=18&duration=2500&pause=900&color=0891B2&center=true&vCenter=true&multiline=true&width=720&height=60&lines=Interface+mais+bonita%2C+limpa+e+moderna;1+clique+pra+voltar+pra+UI+original+%E2%9C%A8" />
+<p>
+  <img alt="Typing" src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=700&size=16&duration=2300&pause=900&color=0891B2&center=true&vCenter=true&width=820&lines=Redesign+moderno+do+Portal+do+Discente+e+Relat%C3%B3rio+de+Notas;Experi%C3%AAncia+mais+limpa%2C+leg%C3%ADvel+e+agrad%C3%A1vel%2C+sem+alterar+o+SIGAA;Sugest%C3%B5es+e+PRs+bem-vindos+%E2%80%94+voc%C3%AA+manda%2C+eu+reviso+e+aprovo" />
 </p>
 
-<p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-3.0.0-0891b2?style=for-the-badge" />
-  <img alt="userscript" src="https://img.shields.io/badge/userscript-Tampermonkey%20%2F%20Greasemonkey-141c2e?style=for-the-badge" />
-  <img alt="ufj" src="https://img.shields.io/badge/UFJ-SIGAA-1e2940?style=for-the-badge" />
-  <img alt="license" src="https://img.shields.io/badge/license-MIT-16a34a?style=for-the-badge" />
-  <img alt="prs" src="https://img.shields.io/badge/PRs-welcome-f59e0b?style=for-the-badge" />
+<p>
+  <a href="https://raw.githubusercontent.com/RubsNeto/SigaaUI/main/sigaa-ui.user.js">
+    <img alt="Instalar Userscript" src="https://img.shields.io/badge/Instalar-Userscript-0891b2?style=for-the-badge&logo=tampermonkey&logoColor=white" />
+  </a>
+  <a href="https://github.com/RubsNeto/SigaaUI/issues">
+    <img alt="Issues" src="https://img.shields.io/badge/Sugerir%20melhoria-Issues-1e2940?style=for-the-badge&logo=github" />
+  </a>
+  <a href="https://github.com/RubsNeto/SigaaUI/pulls">
+    <img alt="Pull Requests" src="https://img.shields.io/badge/Enviar%20c%C3%B3digo-Pull%20Requests-141c2e?style=for-the-badge&logo=github" />
+  </a>
 </p>
 
-<p align="center">
-  <b>SigaaUI</b> é um <i>Userscript</i> que moderniza o visual do SIGAA UFJ sem mexer no backend.<br/>
-  Funciona no <b>Portal do Discente</b> e no <b>Relatório de Notas</b>, com botão pra alternar entre UI moderna ↔ original.
+<p>
+  <img alt="Version" src="https://img.shields.io/badge/version-3.0.0-0891b2?style=for-the-badge" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-16a34a?style=for-the-badge" />
+  <img alt="Stars" src="https://img.shields.io/github/stars/RubsNeto/SigaaUI?style=for-the-badge&label=stars" />
+  <img alt="Last commit" src="https://img.shields.io/github/last-commit/RubsNeto/SigaaUI?style=for-the-badge" />
 </p>
 
-<p align="center">
-  <a href="#-instalação">Instalação</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-prints--demos">Prints</a> •
-  <a href="#-como-funciona">Como funciona</a> •
-  <a href="#-roadmap">Roadmap</a> •
-  <a href="#-contribuindo">Contribuindo</a>
-</p>
+<b>SigaaUI</b> é um <b>userscript</b> open-source que aplica um redesign moderno ao <b>SIGAA UFJ</b>,
+com foco em clareza visual, navegação e leitura de informações acadêmicas — tudo rodando <b>localmente no navegador</b>.
+<br/>
+<sub>Não afiliado à UFJ nem ao SIGAA. Projeto comunitário.</sub>
+
+<br/><br/>
+
+<a href="#-vis%C3%A3o-geral">Visão geral</a> •
+<a href="#-instala%C3%A7%C3%A3o">Instalação</a> •
+<a href="#-o-que-muda">O que muda</a> •
+<a href="#-prints--demos">Prints</a> •
+<a href="#-contribui%C3%A7%C3%B5es">Contribuições</a> •
+<a href="#-privacidade">Privacidade</a> •
+<a href="#-licen%C3%A7a">Licença</a>
 
 </div>
+
+---
+
+## 🔎 Visão geral
+
+**Objetivo:** tornar o SIGAA mais moderno e confortável de usar, mantendo o funcionamento do sistema original.
+
+**Páginas suportadas (atual):**
+- ✅ Portal do Discente (dashboard)
+- ✅ Relatório de Notas
+
+**Como:** o script detecta a página, extrai dados essenciais e renderiza uma interface moderna por cima.  
+Quando necessário, ele aciona elementos/ações da interface original para manter compatibilidade.
 
 ---
 
 ## ⚡ Instalação
 
-> Pré-requisito: extensão **Tampermonkey** (Chrome/Edge) ou **Greasemonkey** (Firefox).
+### Requisitos
+- Extensão **Tampermonkey** (Chrome/Edge) ou **Greasemonkey** (Firefox)
 
-### Método 1 — instalar pelo RAW (recomendado)
-1. Crie um arquivo no repo chamado **`sigaa-ui.user.js`**
-2. Cole o código do userscript nele
-3. Abra o arquivo pelo **Raw** e confirme a instalação no Tampermonkey
+### Instalação (1 clique)
+1. Clique aqui:  
+   https://raw.githubusercontent.com/RubsNeto/SigaaUI/main/sigaa-ui.user.js
+2. O Tampermonkey vai abrir a tela de instalação → **Install**
 
-Link de instalação:
-https://raw.githubusercontent.com/RubsNeto/SigaaUI/main/sigaa-ui.user.js
-
-### Método 2 — copiar/colar no Tampermonkey
+### Instalação manual (copiar/colar)
 1. Abra o Tampermonkey → **Create a new script**
-2. Apague o template
-3. Cole o código todo do userscript
-4. **Ctrl+S** (salvar)
-5. Abra:
-   https://sigaa.sistemas.ufj.edu.br/sigaa/verPortalDiscente.do
+2. Cole o conteúdo do arquivo `sigaa-ui.user.js`
+3. Salve (**Ctrl+S**)
+4. Acesse o SIGAA:
+   - https://sigaa.sistemas.ufj.edu.br/sigaa/verPortalDiscente.do
 
 ---
 
-## ✨ Features
+## ✨ O que muda
 
-- 🎨 Redesign completo (layout moderno, cards, sidebar, tipografia e espaçamento)
-- 🧭 Menu lateral com submenus “flutuantes” e animação
-- 🔁 Toggle UI moderna ↔ original com 1 clique
-- 📊 Página de Notas redesenhada com layout mais legível
-- 🔒 Sem backend / sem servidor: roda 100% no navegador
-- 🎯 Match específico UFJ (`@match https://sigaa.sistemas.ufj.edu.br/sigaa/*`)
-- 🚫 Login preservado (`@exclude *verTelaLogin.do*`)
+- **Layout moderno** com cards, sidebar e tipografia mais limpa
+- **Submenus flutuantes** com animações leves (sem pesar)
+- **Relatório de Notas** mais legível (tabelas melhores + status visual)
+- **Toggle UI Moderna ↔ UI Original**: você alterna quando quiser, sem quebrar nada
+- **Sem servidor / sem backend / sem tracking**: roda só no seu navegador
 
 ---
 
 ## 🖼️ Prints / Demos
 
-> Coloque suas imagens em `assets/` pra ficar lindo no GitHub.
+> Coloque imagens em `assets/` e atualize os nomes abaixo.
 
 <div align="center">
 
-<img src="assets/preview-dashboard.png" alt="Dashboard - SigaaUI" width="92%" />
+<img src="assets/preview-dashboard.png" alt="SigaaUI - Dashboard" width="92%" />
 <br/><br/>
-<img src="assets/preview-grades.png" alt="Relatório de Notas - SigaaUI" width="92%" />
+<img src="assets/preview-grades.png" alt="SigaaUI - Relatório de Notas" width="92%" />
 
 </div>
 
-Se quiser colocar um GIF:
-- assets/demo.gif
+**Dica:** um GIF curto “antes/depois” deixa o repo muito mais forte:
+- `assets/demo.gif`
 
 ---
 
-## 🧠 Como funciona
-
-O SigaaUI detecta a página atual e então:
-1. Extrai dados (nome, período, unidade, índices, turmas, fórum)
-2. Injeta CSS (tema moderno)
-3. Cria uma UI por cima (overlay) sem quebrar o SIGAA
-4. Quando precisa, aciona ações do JSF no sistema original
+## 🧠 Arquitetura (bem resumido)
 
 ```mermaid
 flowchart TD
-  A[Abre uma página do SIGAA] --> B{É Portal do Discente?}
-  B -- sim --> C[Build Dashboard UI]
-  B -- não --> D{É Relatório de Notas?}
-  D -- sim --> E[Build Grades UI]
-  D -- não --> F[Não faz nada]
-  C --> G[Toggle UI moderna/original]
-  E --> G
+  A[Usuário abre página do SIGAA] --> B{Página suportada?}
+  B -- Portal Discente --> C[Renderiza UI moderna (dashboard)]
+  B -- Relatório de Notas --> D[Renderiza UI moderna (notas)]
+  B -- Não --> E[Não altera nada]
+  C --> F[Botão: alternar UI moderna/original]
+  D --> F
 ````
 
 ---
 
-## 🎨 Paleta (Design Tokens)
+## 🎨 Design tokens (paleta)
 
 | Token      |     Valor |
 | ---------- | --------: |
@@ -124,7 +134,7 @@ flowchart TD
 
 ---
 
-## 🧩 Estrutura sugerida do repo
+## 🧩 Estrutura do repositório
 
 ```txt
 SigaaUI/
@@ -139,54 +149,66 @@ SigaaUI/
 
 ---
 
-## 🧨 Limitações conhecidas
+## 🤝 Contribuições
 
-* O SIGAA muda HTML/IDs com o tempo → pode exigir ajuste de seletores.
-* Algumas animações em SVG podem não renderizar como esperado no GitHub; se quiser animação garantida, use GIF nos assets.
+Quero que a comunidade sugira melhorias e envie código — **e eu reviso/aprovo antes de entrar no `main`**.
 
----
+### Sugestões / bugs
 
-## 🗺️ Roadmap
+* Abra uma **Issue** explicando:
 
-* [ ] Modo compacto (densidade menor/maior)
-* [ ] Suporte pra outras páginas do SIGAA (ex.: matrícula, turmas virtuais)
-* [ ] Filtros e busca em “Turmas do Semestre”
-* [ ] Melhorias de acessibilidade (atalhos, contraste, foco)
-* [ ] Tema alternativo (ex.: roxo / verde / dark total)
+  * o problema (ou a ideia)
+  * passos para reproduzir (se for bug)
+  * prints (se possível)
+  * URL/página do SIGAA em que aconteceu
 
----
-
-## 🤝 Contribuindo
+### Enviar código (Pull Request)
 
 1. Faça um fork
-2. Crie uma branch (feat/minha-melhoria)
-3. Commit com mensagem clara
-4. Abra um PR 🙏
+2. Crie uma branch: `feat/minha-melhoria` ou `fix/bug-x`
+3. Faça commits claros
+4. Abra um **Pull Request**
+5. Eu reviso, peço ajustes se necessário, e **faço o merge** ✅
 
-Se for mexer no layout, tenta manter:
+> Recomendação: ative proteção de branch no GitHub para garantir que tudo entre via PR (Settings → Branches → Branch protection rules).
 
-* classes com prefixo sr-
-* animações leves
-* sem dependências pesadas
+---
+
+## 👥 Contribuidores
+
+<div align="center">
+
+<img src="https://contrib.rocks/image?repo=RubsNeto/SigaaUI" alt="Contribuidores" />
+
+</div>
 
 ---
 
 ## 🔐 Privacidade
 
-O SigaaUI não envia dados pra lugar nenhum. Tudo roda localmente no navegador.
+O SigaaUI **não envia** dados para nenhum servidor.
+Ele roda localmente e apenas altera a interface no navegador.
 
 ---
 
 ## 📄 Licença
 
-MIT — use, altere e distribua à vontade (mantendo os créditos).
+MIT — uso livre, inclusive comercial, mantendo os créditos do projeto.
 
 ---
 
 <div align="center">
-  <img
-    src="https://capsule-render.vercel.app/api?type=waving&color=0:0891b2,50:1e2940,100:141c2e&height=130&section=footer&animation=twinkling"
-  />
+  <img alt="footer" src="https://capsule-render.vercel.app/api?type=waving&color=0:0891b2,50:1e2940,100:141c2e&height=130&section=footer&animation=twinkling" />
 </div>
 ```
-::contentReference[oaicite:0]{index=0}
+
+A estrutura acima segue padrões bem comuns em READMEs “top tier” (visão geral → instalação → uso/demos → contribuições/licença), além de usar recursos visuais populares (badges, banner e typing SVG). ([GitHub][1])
+
+Se você quiser, eu também te mando **os arquivos prontos** pra deixar o fluxo de contribuição perfeito:
+
+* `CONTRIBUTING.md`
+* templates de Issues (bug/feature)
+* template de Pull Request
+  (assim o GitHub já abre tudo formatado e fica ultra profissional).
+
+[1]: https://github.com/RichardLitt/standard-readme?utm_source=chatgpt.com "A standard style for README files"
