@@ -213,15 +213,3 @@ MIT — uso livre, inclusive comercial, mantendo os créditos do projeto.
 <div align="center">
   <img alt="footer" src="https://capsule-render.vercel.app/api?type=waving&color=0:0891b2,50:1e2940,100:141c2e&height=130&section=footer&animation=twinkling" />
 </div>
-```
-
-A estrutura acima segue padrões bem comuns em READMEs “top tier” (visão geral → instalação → uso/demos → contribuições/licença), além de usar recursos visuais populares (badges, banner e typing SVG). ([GitHub][1])
-
-Se você quiser, eu também te mando **os arquivos prontos** pra deixar o fluxo de contribuição perfeito:
-
-* `CONTRIBUTING.md`
-* templates de Issues (bug/feature)
-* template de Pull Request
-  (assim o GitHub já abre tudo formatado e fica ultra profissional).
-
-[1]: https://github.com/RichardLitt/standard-readme?utm_source=chatgpt.com "A standard style for README files"
