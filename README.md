@@ -21,14 +21,14 @@
   </a>
   <a href="https://github.com/RubsNeto/SigaaUI/issues">
     <img
-      alt="Abrir Issue"
-      src="https://img.shields.io/badge/Sugerir%20melhoria-Issues-1e2940?style=for-the-badge&logo=github&logoColor=white"
+      alt="Issues"
+      src="https://img.shields.io/badge/Issues-1e2940?style=for-the-badge&logo=github&logoColor=white"
     />
   </a>
   <a href="https://github.com/RubsNeto/SigaaUI/pulls">
     <img
-      alt="Enviar PR"
-      src="https://img.shields.io/badge/Enviar%20c%C3%B3digo-Pull%20Requests-141c2e?style=for-the-badge&logo=github&logoColor=white"
+      alt="Pull Requests"
+      src="https://img.shields.io/badge/Pull%20Requests-141c2e?style=for-the-badge&logo=github&logoColor=white"
     />
   </a>
 </p>
@@ -53,7 +53,8 @@
 <a href="#-instalação">Instalação</a> •
 <a href="#-o-que-muda">O que muda</a> •
 <a href="#-prints--demos">Prints</a> •
-<a href="#-arquitetura-resumo">Arquitetura</a>
+<a href="#-arquitetura-resumo">Arquitetura</a> •
+<a href="#-contribuições">Contribuições</a>
 
 </div>
 
@@ -62,7 +63,7 @@
 ## 🔎 Visão geral
 
 O **SigaaUI** aplica um redesign moderno ao SIGAA UFJ diretamente no navegador.  
-Ele funciona como uma “camada visual”: detecta a página, extrai os dados essenciais e renderiza uma UI mais limpa por cima.
+Ele funciona como uma camada visual: detecta a página, extrai os dados essenciais e renderiza uma UI mais limpa por cima.
 
 **Páginas suportadas (atual):**
 - ✅ Portal do Discente (dashboard)
@@ -72,7 +73,7 @@ Ele funciona como uma “camada visual”: detecta a página, extrai os dados es
 
 ## ⚡ Instalação
 
-> Requisito: **Tampermonkey** (Chrome/Edge) ou **Greasemonkey** (Firefox)
+**Requisito:** Tampermonkey (Chrome/Edge) ou Greasemonkey (Firefox)
 
 <div align="center">
 
@@ -84,7 +85,7 @@ Ele funciona como uma “camada visual”: detecta a página, extrai os dados es
     </td>
     <td align="center" width="260">
       <b>2) Instale o script</b><br/>
-      <a href="https://raw.githubusercontent.com/RubsNeto/SigaaUI/main/sigaa-ui.user.js">Clique aqui</a>
+      <a href="https://raw.githubusercontent.com/RubsNeto/SigaaUI/main/sigaa-ui.user.js">Abrir link</a>
     </td>
     <td align="center" width="260">
       <b>3) Abra o SIGAA</b><br/>
@@ -120,17 +121,22 @@ Ele funciona como uma “camada visual”: detecta a página, extrai os dados es
   <img src="assets/preview-grades.png" alt="SigaaUI - Relatório de Notas" width="92%" />
 </div>
 
+**Extra (recomendado):** `assets/demo.gif`
+
 ---
 
 ## 🧠 Arquitetura (resumo)
 
+O script segue um fluxo simples: identifica a página, decide se é suportada e aplica o layout moderno.  
+O botão de toggle permite alternar entre a UI moderna e a UI original sem interromper o uso.
+
 ```mermaid
 flowchart TD
-  A[Usuário abre uma página do SIGAA] --> B{Página suportada?}
-  B -- Portal do Discente --> C[Renderiza UI moderna (dashboard)]
-  B -- Relatório de Notas --> D[Renderiza UI moderna (notas)]
-  B -- Não --> E[Não altera nada]
-  C --> F[Toggle: UI moderna/original]
+  A["Usuário abre uma página do SIGAA"] --> B{"Página suportada?"}
+  B -->|Portal do Discente| C["Renderiza UI moderna (dashboard)"]
+  B -->|Relatório de Notas| D["Renderiza UI moderna (notas)"]
+  B -->|Outra página| E["Não altera nada"]
+  C --> F["Toggle: UI moderna/original"]
   D --> F
   
 ---
