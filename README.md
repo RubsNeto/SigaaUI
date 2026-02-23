@@ -138,22 +138,23 @@ flowchart TD
   B -->|Outra página| E["Não altera nada"]
   C --> F["Toggle: UI moderna/original"]
   D --> F
-  
+```
+
 ---
 
 ## 🎨 Design tokens (paleta)
 
-| Token      |     Valor |
-| ---------- | --------: |
-| Primary    | `#0891b2` |
-| Dark       | `#141c2e` |
-| Dark 2     | `#1e2940` |
+| Token | Valor |
+|------|------:|
+| Primary | `#0891b2` |
+| Dark | `#141c2e` |
+| Dark 2 | `#1e2940` |
 | Background | `#f4f6f9` |
-| Text       | `#1a2233` |
+| Text | `#1a2233` |
 
 ---
 
-## 🧩 Estrutura do repositório
+## 🧩 Estrutura sugerida do repositório
 
 ```txt
 SigaaUI/
@@ -168,54 +169,65 @@ SigaaUI/
 
 ---
 
+## 🧨 Limitações conhecidas
+
+- O SIGAA pode alterar HTML/IDs com o tempo, exigindo ajustes em seletores.
+- Alguns elementos do sistema original podem variar conforme permissões/perfis de usuário.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Modo compacto (densidade menor/maior)
+- [ ] Suporte para outras páginas do SIGAA (ex.: matrícula, turmas virtuais)
+- [ ] Filtros e busca em “Turmas do Semestre”
+- [ ] Melhorias de acessibilidade (atalhos, contraste, foco)
+- [ ] Tema alternativo (ex.: roxo / verde / dark total)
+
+---
+
 ## 🤝 Contribuições
 
-Quero que a comunidade sugira melhorias e envie código — **e eu reviso/aprovo antes de entrar no `main`**.
+Sugestões e melhorias são bem-vindas.
 
 ### Sugestões / bugs
-
-* Abra uma **Issue** explicando:
-
-  * o problema (ou a ideia)
-  * passos para reproduzir (se for bug)
-  * prints (se possível)
-  * URL/página do SIGAA em que aconteceu
+Abra uma Issue descrevendo:
+- o problema ou a ideia
+- página/URL do SIGAA
+- prints (se possível)
+- passos para reproduzir (se for bug)
 
 ### Enviar código (Pull Request)
-
 1. Faça um fork
 2. Crie uma branch: `feat/minha-melhoria` ou `fix/bug-x`
-3. Faça commits claros
-4. Abra um **Pull Request**
-5. Eu reviso, peço ajustes se necessário, e **faço o merge** ✅
-
-> Recomendação: ative proteção de branch no GitHub para garantir que tudo entre via PR (Settings → Branches → Branch protection rules).
+3. Commits claros e objetivos
+4. Abra um Pull Request para revisão
 
 ---
 
 ## 👥 Contribuidores
 
 <div align="center">
-
-<img src="https://contrib.rocks/image?repo=RubsNeto/SigaaUI" alt="Contribuidores" />
-
+  <img src="https://contrib.rocks/image?repo=RubsNeto/SigaaUI" alt="Contribuidores" />
 </div>
 
 ---
 
 ## 🔐 Privacidade
 
-O SigaaUI **não envia** dados para nenhum servidor.
-Ele roda localmente e apenas altera a interface no navegador.
+O SigaaUI não envia dados para nenhum servidor. Tudo roda localmente no navegador.
 
 ---
 
 ## 📄 Licença
 
-MIT — uso livre, inclusive comercial, mantendo os créditos do projeto.
+MIT — uso livre, mantendo os créditos do projeto.
 
 ---
 
 <div align="center">
-  <img alt="footer" src="https://capsule-render.vercel.app/api?type=waving&color=0:0891b2,50:1e2940,100:141c2e&height=130&section=footer&animation=twinkling" />
+  <img
+    alt="footer"
+    src="https://capsule-render.vercel.app/api?type=waving&color=0:0891b2,50:1e2940,100:141c2e&height=130&section=footer&animation=twinkling"
+  />
 </div>
