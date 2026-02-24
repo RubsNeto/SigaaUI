@@ -1,11 +1,10 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name         SIGAA UFJ - Redesign Moderno
 // @namespace    https://sigaa.sistemas.ufj.edu.br/
 // @version      3.0.0
 // @description  Redesign moderno do portal SIGAA UFJ
 // @author       Rubens Neto
 // @match        https://sigaa.sistemas.ufj.edu.br/sigaa/*
-// @exclude      *verTelaLogin.do*
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
@@ -18,12 +17,22 @@
     // ========================================
     const PAGE_TYPE = (() => {
         const path = location.pathname;
+        const search = location.search;
+        if (path.includes('verTelaLogin.do') || (path.includes('logar.do') && !search.includes('dispatch=logOff'))) {
+            return 'login';
+        }
+        if (path.includes('telaAvisoLogon.jsf')) {
+            return 'notice';
+        }
         if (path.includes('/portais/discente/discente.jsf') || path.includes('/verPortalDiscente.do')) {
             return 'dashboard';
         }
         if (document.querySelector('h3')?.textContent.includes('Relatório de Notas') ||
             document.querySelector('.tabelaRelatorio caption')) {
             return 'grades';
+        }
+        if (document.querySelector('#cabecalho')) {
+            return 'inner';
         }
         return null;
     })();
@@ -142,7 +151,7 @@
     font-size: 14px;
     display: flex;
     flex-direction: column;
-    background: #f4f6f9;
+    background: #eef2f8;
     color: #1a2233;
     overflow: hidden;
     zoom: 1.25;
@@ -152,7 +161,7 @@
 .sr-header {
     height: 56px;
     min-height: 56px;
-    background: linear-gradient(135deg, #141c2e 0%, #1e2940 100%);
+    background: linear-gradient(135deg, #17428c 0%, #0f2d66 100%);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -204,7 +213,7 @@
 .sr-sidebar {
     width: 215px;
     min-width: 200px;
-    background: #141c2e;
+    background: #0d2254;
     color: rgba(255,255,255,0.7);
     display: flex;
     flex-direction: column;
@@ -219,7 +228,7 @@
 }
 .sr-sidebar-header .sr-logo {
     width: 36px; height: 36px;
-    background: #0891b2;
+    background: #17428c;
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     color: #fff; font-weight: 700; font-size: 16px;
@@ -267,7 +276,7 @@
 }
 .sr-menu-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9) !important; }
 .sr-menu-item.active {
-    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%) !important;
     color: #fff !important;
     box-shadow: none !important;
     max-width: 100% !important;
@@ -279,7 +288,7 @@
     position: fixed !important;
     left: 215px !important;
     margin-top: -8px !important;
-    background: rgba(30, 41, 64, 0.95) !important;
+    background: rgba(10, 31, 74, 0.97) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border-radius: 14px !important;
@@ -844,16 +853,50 @@
             toggle.innerHTML = active ? `${I.star} UI Original` : `${I.star} UI Moderna`;
         };
 
-        // Handle JSF action submenu items
-        function triggerJSFAction(action) {
-            // Hide modern UI so user can interact with original SIGAA
-            root.style.display = 'none';
-            toggle.innerHTML = `${I.star} UI Moderna`;
-            active = false;
+        // Recursively search SIGAA cmDraw menu array for a display text and return its jscook_action value
+        function findMenuAction(arr, displayText) {
+            if (!Array.isArray(arr)) return null;
+            for (const item of arr) {
+                if (!Array.isArray(item)) continue;
+                // item[1] = display text, item[2] = jscook_action (or null if folder)
+                // SIGAA stores text as HTML entities inside JS strings, must decode before comparing
+                const rawText = item[1] ? String(item[1]).replace(/<[^>]*>/g, '').trim() : '';
+                const text = rawText
+                    .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(+c))
+                    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ');
+                if (text === displayText && typeof item[2] === 'string' && item[2].includes(':A]')) {
+                    return item[2];
+                }
+                // item[5+] are sub-menus
+                for (let i = 5; i < item.length; i++) {
+                    const found = findMenuAction(item[i], displayText);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
 
-            // Find the form and submit with the action
-            const form = document.querySelector('form[id*="menu"]') || document.forms[0];
-            if (form) {
+        // Find the SIGAA cmDraw menu variable in window scope
+        function getSigaaMenuData() {
+            // The variable name looks like: menu_form_menu_discente_j_id_jsp_1051041857_97_menu
+            const scripts = Array.from(document.querySelectorAll('script'));
+            for (const s of scripts) {
+                const m = s.textContent.match(/var ((?:menu_)?form_menu_discente[\w]+)\s*=/);
+                if (m && window[m[1]]) return window[m[1]];
+            }
+            return null;
+        }
+
+        // Navigate to a SIGAA page via SIGAA menu form submission
+        function navigateByText(displayText) {
+            const menuData = getSigaaMenuData();
+            const jscookAction = menuData ? findMenuAction(menuData, displayText) : null;
+
+            const form = document.querySelector('form[id$="form_menu_discente"]') ||
+                document.querySelector('form[id*="form_menu_discente"]') ||
+                document.querySelector('form[id*="menu_discente"]');
+            if (jscookAction && form) {
                 let input = form.querySelector('input[name="jscook_action"]');
                 if (!input) {
                     input = document.createElement('input');
@@ -861,9 +904,15 @@
                     input.name = 'jscook_action';
                     form.appendChild(input);
                 }
-                input.value = 'menu_form_menu_discente_j_id_jsp_1051041857_97_menu:A]#{ ' + action + ' }';
+                input.value = jscookAction;
                 form.submit();
+                return;
             }
+
+            // Fallback: find link by text
+            const allLinks = Array.from(document.querySelectorAll('a'));
+            const target = allLinks.find(a => a.textContent.trim() === displayText);
+            if (target) { target.click(); return; }
         }
 
         // Attach handlers to submenu items with data-action or data-grades
@@ -871,6 +920,7 @@
             item.addEventListener('click', (e) => {
                 const action = item.dataset.action;
                 const isGrades = item.dataset.grades;
+                const menuText = item.textContent.trim();
 
                 if (isGrades) {
                     e.preventDefault();
@@ -888,13 +938,12 @@
                         // Encontra o elemento 'tr' pai que tem os eventos de mouse
                         const parentRow = target.closest('tr');
                         if (parentRow) {
-                            // Simula os eventos necessários para ativar o menu do SIGAA
                             const mouseDown = new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window });
                             const mouseUp = new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window });
                             parentRow.dispatchEvent(mouseDown);
                             parentRow.dispatchEvent(mouseUp);
                         } else {
-                            target.click(); // Fallback
+                            target.click();
                         }
                     } else {
                         alert('Item de menu "Notas" não encontrado no menu original. Por favor, navegue manualmente.');
@@ -905,7 +954,7 @@
                 if (action) {
                     e.preventDefault();
                     e.stopPropagation();
-                    triggerJSFAction(action);
+                    navigateByText(menuText);
                 }
             });
         });
@@ -1075,13 +1124,847 @@
     }
 
     // ========================================
+    // LOGIN PAGE BUILD
+    // ========================================
+    function buildLogin() {
+        const loginCSS = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+#login-redesign {
+    position: fixed; inset: 0; z-index: 999999;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #17428c 0%, #0f2d66 50%, #0a1f4a 100%);
+    overflow: hidden;
+}
+
+/* Background illustration */
+.lr-bg {
+    position: absolute; inset: 0; pointer-events: none;
+}
+.lr-bg::before {
+    content: ''; position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cpath fill='rgba(255,255,255,0.15)' d='M1911.7,776.9c-1.1-2.9-2-5.2-3-7.5c-44.9-103.8-107.8-191-186.9-259.3c-65.4-56.4-138.5-95.4-217.2-115.7c-34.1-8.8-62.4-16.9-89.2-32.7c-3-1.8-6.4-3.2-9.7-4.6c-1.2-0.5-2.4-1-3.6-1.6c-91.9-40.6-189.7-59.2-290.6-55.2c-39,1.5-72.4,5.2-102.1,11.1c-55.7,11.1-112.1,23.8-166.6,36.1c-22.6,5.1-46,10.3-69,15.4c-2.5,0.6-5,1-7.7,1.4c-1.3,0.2-2.7,0.5-4.1,0.7l-1.8,0.3v-1.8c0-2.1,0-4.1,0-6.1c0-4.4-0.1-8.6,0.1-12.7c0.2-3.6-0.9-4.8-4.8-5.7c-33.1-7.5-66.8-15.2-99.3-22.7c-23.5-5.4-46.9-10.7-70.4-16.1c-1.7-0.4-3.6-0.3-5.1,0.2c-16.4,5.3-32.8,10.7-49.3,16.1c-23.2,7.6-47.3,15.5-71,23.1c-4.9,1.6-6.4,3.6-6.3,8.5c0.3,13.2,0.2,26.5,0.2,39.5c0,4,0,8.1,0,12.1c0,1.9-0.1,3.8-0.3,5.8c-0.1,1-0.1,1.9-0.2,3l-0.1,1.6l-1.6-0.2c-3.6-0.4-7-0.8-10.4-1.2c-7.9-0.9-15.4-1.8-22.9-2.1c-5.9-0.3-13.5-0.3-20,1.8c-73.1,24-138.9,45.7-204.4,68c-68.3,23.4-120.2,67.7-154.1,131.9C18.7,649.5,7.8,694.7,7,746.6c0,3,0.4,4.8,1.4,5.8c1,1,2.8,1.4,5.5,1.3c14.1-0.5,28-0.3,42.3-0.1c2.3,0,3.7-0.3,4.4-1c0.7-0.7,1-2.3,0.9-4.8c-0.1-3.1-0.3-6.3-0.4-9.4c-0.6-13.1-1.3-26.7,0.1-39.8C70.3,609.4,117,545.3,200,508.3c3.1-1.4,7.2-2,11.2-1.6c23.1,2.1,45.7,4.3,70.8,6.9c13.3,1.3,26.4,2.7,40.3,4.2c6.3,0.7,12.6,1.3,19.2,2l3.8,0.4l-3.1,2.3c-0.9,0.7-1.7,1.3-2.3,1.7c-1.1,0.8-1.9,1.4-2.7,2c-25.4,15.9-47.6,35.2-66,57.3c-38.1,45.9-59.7,99.7-66,164.6c-0.2,2.3,0,3.8,0.7,4.6c0.7,0.8,2.2,1.1,4.6,1.1c16.2-0.3,31.1-0.3,45.4,0c2.6,0.1,4.3-0.3,5-1.1c0.8-0.9,1.1-2.6,0.9-5.5c-2-33.4,1.5-62.9,10.7-89.9c12-35.2,29.4-64.5,51.6-86.8c23.5-23.7,53.1-40.5,88.1-49.8c8.8-2.4,17.8-3.5,27.3-4.7c4.3-0.6,8.8-1.1,13.2-1.8l1.7-0.3v65.8c0,63.1,0,128.4-0.1,192.6c0,3.6,0.5,5.6,1.6,6.7c1.1,1.1,3.1,1.6,6.4,1.6h0.1c48.3-0.1,96.6-0.2,144.5-0.2c49,0,97.7,0.1,145.6,0.2c3.4,0,5.4-0.5,6.5-1.5c1.1-1.1,1.5-3.1,1.5-6.7c-0.2-65.5-0.2-132.1-0.1-196.5v-63.4l50.7-8.5c36.7-6.2,73.2-12.3,109.7-18.5c25.1-4.2,50.2-8.4,75.3-12.7c61.4-10.3,124.9-20.9,187.2-32c60.9-10.8,110.6-12.5,156.6-5.2c3.5,0.5,8.2,2.2,10.9,5.3c3.2,3.6,6.5,7.2,9.6,10.7c11,12.1,22.3,24.6,32,38c55.8,77.3,87.4,169.6,96.6,282l0.1,0.8c0.3,4,0.5,6.5,1.4,7.3c0.9,0.8,3.6,0.8,7.9,0.8H1913C1912.5,779,1912.1,777.9,1911.7,776.9z M410.4,408.6l43.4,4.8v34.9l-43.4-4.1V408.6z M209.9,501.3c-34.3,10.7-65.4,31-92.4,60.4c-44,47.9-64.3,107.3-60.3,176.8c0.1,1.1,0.2,2.2,0.3,3.4c0.1,1.2,0.2,2.4,0.3,3.6c0,0.7-0.1,1.3-0.2,2c-0.1,0.3-0.1,0.7-0.2,1l-0.2,1.3H11.5v-1.5c0-2.8-0.1-5.7-0.1-8.5c-0.1-6.1-0.3-12.3,0.2-18.5c5.5-62,27-115.8,63.8-159.8c31.7-37.9,69.9-64.7,113.6-79.8c49.3-17,99.6-33.6,148.3-49.7c20.5-6.8,41.7-13.8,62.5-20.7c0.8-0.3,1.6-0.5,2.6-0.8l3.7-1.2v34.9l-1.1,0.3c-6.4,1.9-12.9,3.8-19.3,5.7c-14.1,4.1-28.7,8.4-43.1,12.6c-13.9,4-28.1,8-41.8,11.9C270.9,483.2,240,491.9,209.9,501.3z M453.8,511.2l-1.4,0.1c-60.6,3.1-110,28.7-147,76.2c-34.4,44.2-49.8,96.8-47.1,160.9l0.1,1.6h-51.6l0.4-1.8c1.3-6.2,2.5-12.5,3.6-18.5c2.6-13.7,5.1-26.6,8.5-39.7c12.8-48.4,37-89.8,71.8-123.2c16.7-16,36.9-29.6,54.6-41.7c6.7-4.5,15-6.7,23-8.9c1.7-0.5,3.5-0.9,5.1-1.4c18.3-5.2,36.9-10.2,55-15c5.5-1.5,11-2.9,16.6-4.4c1.4-0.4,2.7-0.6,4.3-0.8c0.8-0.1,1.6-0.2,2.4-0.4l1.7-0.3V511.2z M211.2,503.9l13.6-3.6l21.4-6.2c15-4.4,30-8.7,45-13.1c9.6-2.8,19.3-5.6,28.9-8.5c26.1-7.7,53.1-15.7,79.9-22.7c8.3-2.2,17.3-1.4,26.1-0.7c1.8,0.1,3.5,0.3,5.2,0.4c22.5,1.6,23.2,2.3,23.2,25.1c0,14.1-0.5,14.8-13.4,18.3l-0.8,0.2c-10.3,2.8-20.8,5.8-31,8.7c-16.2,4.6-32.9,9.3-49.5,13.6c-3.3,0.8-6.7,1.1-10.2,1.1c-3.6,0-7.3-0.3-11-0.7c-28.5-2.7-57.5-5.7-85.5-8.5c-8-0.8-16.1-1.7-24.1-2.5 M585.4,303.4l1.8,0.4c7.3,1.7,14.6,3.3,21.8,4.9c15.9,3.6,32.4,7.3,48.5,11c9.4,2.2,18.8,4.3,28.2,6.5c20.6,4.8,42,9.8,63,14.3c6.3,1.4,8.6,4.2,8.4,10.8l0,0.8c-0.3,13.8-0.9,14.4-15.1,17.6c-50.5,11.2-101,22.4-151.6,33.6c-0.6,0.1-1.2,0.2-2,0.2c-0.4,0-0.9,0-1.5,0.1l-1.6,0.1V303.4z M1440.6,377.8l7,3.5l-13.3-1.5c-6.9-0.4-13.8-2-20.4-2.5c-15-1.1-29.2-2.2-43.6-2.1c-19.6,0.2-39.6,1.4-59,2.6c-9.5,0.6-19.3,1.1-29,1.6c-3.2,0.2-6.8,0.2-9.7-1.2c-69.6-34.1-144.5-41.9-228.9-23.7c-85.9,18.5-173.4,36.8-258,54.6c-39,8.2-78,16.4-117,24.6c-23.8,5-47.7,10.1-71.5,15.1c-16.1,3.4-32.3,6.9-48.4,10.3c-1.5,0.3-3,0.5-4.7,0.8c-0.9,0.1-1.8,0.3-2.8,0.4l-1.7,0.3v-1.8c0-3.1,0-6.2,0-9.2c0-9.2-0.1-17.8,0.3-26.6c0.1-2.8,4.4-5.9,7.1-6.5c44.3-10.1,88-19.7,132.6-29.5c29.7-6.5,59.8-13.3,89-19.8c78.7-17.5,160.1-35.7,240.4-52.4c29.5-6.1,62.1-9.7,102.5-11.3c105.3-4.1,206.5,16.1,301,60.1c5.3,2.4,10.5,5.1,15.6,7.7c1.6,0.8,3.2,1.6,4.7,2.4 M1268.2,380.8l-66,13.4c-7.2,1.5-14.3,2.9-21.4,4.4c-22.6,4.6-45.9,9.4-68.9,13.8c-1.7,0.3-3.4,0.5-5.1,0.5c-3,0-5.7-0.5-7.8-1.6c-21.5-10.8-43.3-22.1-64.3-33.1c-6.1-3.2-12.2-6.3-18.3-9.5c-0.5-0.3-1-0.6-1.5-0.9c-0.3-0.2-0.6-0.4-0.9-0.6l-2.7-1.7l3-1c38.2-12.8,85.7-18.3,133.8-15.6c48.1,2.7,89.6,13.3,116.8,29.8L1268.2,380.8z M581.3,776.3H457.7l0-79.8c0-112.2,0-228.3-0.2-342.4c0-7.7,2.4-11,9.6-13.2c25.8-8,51.9-16.6,77.2-24.9c9.4-3.1,18.8-6.2,28.1-9.2c1.5-0.5,2.9-0.9,4.6-1.4c0.8-0.2,1.7-0.5,2.7-0.8l1.9-0.6v101.3l-1.2,0.3c-3.4,0.8-6.9,1.6-10.3,2.4c-8,1.9-16.2,3.8-24.4,5.2c-7.9,1.3-10.3,4.2-9.8,12c0.6,9.4,0.5,18.7,0.3,28.6c0,3.7-0.1,7.4-0.1,11.3l45-9.2V776.3z M756.7,776.4H585.8V454.6l1.2-0.3c3.1-0.7,6.2-1.3,9.3-2c9.3-2,19-4.1,28.6-6.1c2.2-0.4,4.7-0.3,6.9,0.3c39.9,12,80.4,24.2,119.5,36.1l2.2,0.7c0.6,0.2,1.2,0.5,1.7,0.8c0.2,0.1,0.5,0.2,0.7,0.4l0.8,0.4V776.4z M760.3,482.1c-31.1-9.3-62.7-19-93.3-28.3l-15.6-4.8c-1.7-0.5-3.4-1.1-5-1.6l-11.8-3.1l8.6-2l1.1-0.2c6.4-1.4,12.8-2.7,19.2-4.1c13.6-2.9,27.7-6,41.6-8.9c90.6-19.2,193.3-40.9,293.1-61.8c3.6-0.8,7.8-0.3,10.6,1.1c22.3,11.3,44.8,23,66.6,34.4l15.9,8.3c0.5,0.3,0.9,0.6,1.7,1.1c0.4,0.3,1,0.7,1.7,1.2l2.9,2l-17.7,3.6c-9.7,2-19,3.9-28.3,5.8c-105.2,21.3-192.9,39-283.7,57.3c-1.6,0.3-3,0.5-4.3,0.5C762.3,482.6,761.2,482.4,760.3,482.1z M1337.5,427.8l5.4,3.8l-8.1-1c-2.6-0.2-5.2-0.4-7.7-0.6c-5.3-0.4-10.3-0.8-15.3-1.3c-46.5-4.3-91.1,1.9-128.5,8.5c-47.8,8.4-96.4,16.5-143.5,24.4c-21.7,3.6-43.4,7.3-65.1,10.9c-40.1,6.8-80.2,13.6-120.3,20.4c-29.2,4.9-58.3,9.9-87.5,14.8c-0.9,0.1-1.8,0.2-2.8,0.3c-0.5,0-1,0.1-1.6,0.2l-1.7,0.2V487l1.2-0.2c5.6-1.1,11.2-2.3,16.8-3.4c12.1-2.5,24.2-5,36.4-7.4l70.1-14.2c74.5-15.1,151.6-30.7,227.5-46c54.3-11,109.1-21.7,156.2-31c1.9-0.4,6.5-1,9.3,0.9c16.1,11.1,32.3,22.6,48,33.8l8,5.7 M1492.8,776.5l-0.1-1.4c-5-65.8-17.8-124.4-39.1-179.1c-24-61.8-56.1-112.6-98.1-155.5l-3.3-3.4l4.7,0.9c33.3,6.3,63.7,15.9,92.8,29.5c80.5,37.4,143.8,97.3,193.7,183.2c20.8,35.9,37.5,74.2,49.5,113.8c0.6,2.1,1.3,4.3,1.9,6.6c0.3,1.1,0.6,2.3,1,3.5l0.5,1.9H1492.8z M1784.1,774.3c0,0.2-0.1,0.5-0.1,0.8l-0.2,1.3h-84l-0.3-1.1c-18.6-64.4-46.9-122.8-84.2-173.7c-65.2-88.9-150.2-144.7-252.7-165.7c-12.3-2.5-20.8-8.6-28.1-14.7c-10.6-9-21.8-17.1-33.7-25.7c-5-3.6-10.1-7.4-15.3-11.2l-3.2-2.4l4-0.3c5.7-0.4,11.3-0.8,16.9-1.2c12.4-0.9,24.1-1.8,36.1-2.3c35.2-1.5,71.2,0.8,110,7.2c4.6,0.7,9.4,2.5,13.6,4.9c62.4,36,119.9,83.3,170.9,140.4c61.8,69.2,111.5,148.3,147.6,235.2c0.9,2.2,1.8,4.4,2.5,6.6C1784.4,773.1,1784.3,773.7,1784.1,774.3z M1456,383.2l24.6,7c7.1,2.2,14.2,4.3,21.2,6.4c15.3,4.5,31.1,9.2,46.3,14.7c60.1,21.6,116.3,54.4,167.3,97.7c41,34.8,78,74.8,109.8,118.9c30.6,42.3,57.4,89.7,79.7,140.8c0.5,1.1,0.9,2.3,1.3,3.7c0.2,0.8,0.5,1.6,0.9,2.6l0.7,2h-22.4c-6.9,0-13.6,0-20.3,0c-23.9,0-47,0-70.5-0.2c-3,0-6.5-3.8-7.5-6.2c-16.7-41.5-37.7-83-62.5-123.5c-27.4-44.7-59.1-86.9-94.3-125.4c-43.6-47.7-93-89.1-147-123'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 150%;
+    background-position: center;
+}
+
+/* Centered Card */
+.lr-card {
+    position: relative; z-index: 2;
+    width: 100%; max-width: 440px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 44px 40px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05);
+    animation: cardIn 0.5s ease-out;
+    overflow: hidden;
+}
+@keyframes cardIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Watermark logo in background */
+.lr-card::after {
+    content: '';
+    position: absolute;
+    bottom: -430px; right: -611px;
+    width: 1200px; height: 1200px;
+    background: url('https://ufj.edu.br/wp-content/uploads/2026/01/cropped-PNG_VERTICAL_SEM_DESCRITOR.png') no-repeat center / contain;
+    opacity: 0.04;
+    pointer-events: none;
+}
+
+/* Logo */
+.lr-logo {
+    display: block; margin: 0 auto 20px;
+    height: 72px; width: auto;
+    position: relative; z-index: 1;
+}
+
+/* Header */
+.lr-header {
+    text-align: center; margin-bottom: 32px;
+    position: relative; z-index: 1;
+}
+.lr-title {
+    font-size: 22px; font-weight: 700; color: #1a2233;
+    margin-bottom: 6px;
+}
+.lr-subtitle {
+    font-size: 13px; color: #94a3b8;
+}
+
+/* Form */
+.lr-field {
+    margin-bottom: 18px;
+    position: relative; z-index: 1;
+}
+.lr-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #64748b; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.lr-input {
+    width: 100%; padding: 13px 16px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px; font-family: inherit;
+    color: #1a2233; outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+.lr-input:focus {
+    border-color: #17428c;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(23,66,140,0.12);
+}
+.lr-input::placeholder { color: #94a3b8; }
+
+.lr-warn {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 10px 12px; border-radius: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    margin-bottom: 22px;
+    position: relative; z-index: 1;
+}
+.lr-warn-icon {
+    width: 16px; height: 16px; flex-shrink: 0;
+    color: #d97706; margin-top: 1px;
+}
+.lr-warn-text {
+    font-size: 11px; color: #92400e; line-height: 1.5;
+}
+.lr-submit {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #1a4fa0, #17428c);
+    color: #fff; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(23,66,140,0.35);
+    position: relative; z-index: 1;
+}
+.lr-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(23,66,140,0.45);
+    background: linear-gradient(135deg, #1e5ab3, #1a4fa0);
+}
+.lr-submit:active { transform: translateY(0); }
+.lr-forgot {
+    display: block; text-align: center;
+    margin-top: 18px; font-size: 13px;
+    color: #94a3b8; text-decoration: none; font-weight: 500;
+    transition: color 0.2s;
+    position: relative; z-index: 1;
+}
+.lr-forgot:hover { color: #17428c; }
+
+/* Separator */
+.lr-sep {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 16px; color: #cbd5e1;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 600;
+    position: relative; z-index: 1;
+}
+.lr-sep::before, .lr-sep::after {
+    content: ''; flex: 1; height: 1px;
+    background: #e2e8f0;
+}
+
+/* System chips */
+.lr-systems {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+    position: relative; z-index: 1;
+}
+.lr-sys-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 100px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b; font-size: 11px; font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.lr-sys-chip:hover {
+    background: #f1f5f9; border-color: #cbd5e1;
+    color: #1a2233; transform: translateY(-1px);
+}
+.lr-sys-chip.active {
+    background: #17428c; border-color: #17428c;
+    color: #fff;
+}
+.lr-sys-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: currentColor; opacity: 0.5;
+}
+
+/* Footer */
+.lr-footer {
+    position: absolute; bottom: 24px; left: 0; right: 0; z-index: 2;
+    text-align: center; font-size: 11px; color: rgba(255,255,255,0.3);
+}
+.lr-footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+.lr-footer a:hover { color: rgba(255,255,255,0.8); }
+
+/* Responsive */
+@media (max-width: 520px) {
+    .lr-card { margin: 16px; padding: 32px 24px; border-radius: 20px; }
+    .lr-logo { height: 56px; margin-bottom: 16px; }
+    .lr-title { font-size: 20px; }
+    .lr-card::after { width: 180px; height: 180px; bottom: -20px; right: -20px; }
+}
+`;
+
+        // Extract original form data
+        const originalForm = document.querySelector('form[name="loginForm"]');
+        const formAction = originalForm ? originalForm.action : '/sigaa/logar.do?dispatch=logOn';
+
+        // Systems links
+        const systems = [
+            { name: 'SIGAA', url: 'https://sigaa.sistemas.ufj.edu.br/sigaa/?modo=classico', active: true },
+            { name: 'SIPAC', url: 'https://sipac.sistemas.ufj.edu.br/sipac/?modo=classico', active: false },
+            { name: 'SIGRH', url: 'https://sigrh.sistemas.ufj.edu.br/sigrh/?modo=classico', active: false },
+            { name: 'SIGEleição', url: 'https://sigeleicao.sistemas.ufj.edu.br/sigeleicao/', active: false },
+            { name: 'SIGEventos', url: 'https://sigeventos.sistemas.ufj.edu.br/sigeventos/', active: false },
+            { name: 'SIGAdmin', url: 'https://sigadmin.sistemas.ufj.edu.br/admin/', active: false },
+        ];
+
+        const systemsHTML = systems.map(s =>
+            `<a href="${s.url}" class="lr-sys-chip${s.active ? ' active' : ''}" ${!s.active ? 'target="_blank"' : ''}>
+                <span class="lr-sys-dot"></span>${s.name}
+            </a>`
+        ).join('');
+
+        const warnIcon = '<svg class="lr-warn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+
+        const style = document.createElement('style');
+        style.textContent = loginCSS;
+        document.head.appendChild(style);
+
+        const root = document.createElement('div');
+        root.id = 'login-redesign';
+        root.innerHTML = `
+            <div class="lr-bg"></div>
+            <div class="lr-card">
+                <img class="lr-logo" src="https://upload.wikimedia.org/wikipedia/commons/2/29/UFJ_PNG_HORIZONTAL_COM_DESCRITOR.png" alt="UFJ">
+                <div class="lr-header">
+                    <h1 class="lr-title">Entrar no SIGAA</h1>
+                    <p class="lr-subtitle">Sistema Integrado de Gestão de Atividades Acadêmicas</p>
+                </div>
+                <form name="loginFormNew" method="post" action="${formAction}">
+                    <input type="hidden" name="width" value="${screen.width}">
+                    <input type="hidden" name="height" value="${screen.height}">
+                    <input type="hidden" name="urlRedirect" value="">
+                    <input type="hidden" name="subsistemaRedirect" value="">
+                    <input type="hidden" name="acao" value="">
+                    <input type="hidden" name="acessibilidade" value="">
+                    <div class="lr-field">
+                        <label class="lr-label">Usuário</label>
+                        <input class="lr-input" type="text" name="user.login" placeholder="Digite seu usuário" autocomplete="username" autofocus>
+                    </div>
+                    <div class="lr-field">
+                        <label class="lr-label">Senha</label>
+                        <input class="lr-input" type="password" name="user.senha" placeholder="Digite sua senha" autocomplete="current-password">
+                    </div>
+                    <div class="lr-warn">
+                        ${warnIcon}
+                        <span class="lr-warn-text">A senha diferencia letras maiúsculas de minúsculas. Digite exatamente como cadastrada.</span>
+                    </div>
+                    <button type="submit" class="lr-submit">Entrar</button>
+                </form>
+                <a href="https://login.dev.ufj.edu.br/recuperar" target="_blank" class="lr-forgot">Esqueceu a senha?</a>
+                <div class="lr-sep">Outros sistemas</div>
+                <div class="lr-systems">${systemsHTML}</div>
+            </div>
+            <div class="lr-footer">
+                SIGAA | <a href="https://ufj.edu.br" target="_blank">UFJ</a> • Secretaria de Tecnologia da Informação
+            </div>
+        `;
+
+        document.body.appendChild(root);
+
+        // Focus the username field
+        const userInput = root.querySelector('input[name="user.login"]');
+        if (userInput) userInput.focus();
+    }
+
+    // ========================================
+    // NOTICE PAGE BUILD
+    // ========================================
+    function buildNotice() {
+        const noticeCSS = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+#notice-redesign {
+    position: fixed; inset: 0; z-index: 999999;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #17428c 0%, #0f2d66 50%, #0a1f4a 100%);
+    overflow: hidden;
+}
+
+/* Background illustration */
+.nr-bg {
+    position: absolute; inset: 0; pointer-events: none;
+}
+.nr-bg::before {
+    content: ''; position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cpath fill='rgba(255,255,255,0.15)' d='M1911.7,776.9c-1.1-2.9-2-5.2-3-7.5c-44.9-103.8-107.8-191-186.9-259.3c-65.4-56.4-138.5-95.4-217.2-115.7c-34.1-8.8-62.4-16.9-89.2-32.7c-3-1.8-6.4-3.2-9.7-4.6c-1.2-0.5-2.4-1-3.6-1.6c-91.9-40.6-189.7-59.2-290.6-55.2c-39,1.5-72.4,5.2-102.1,11.1c-55.7,11.1-112.1,23.8-166.6,36.1c-22.6,5.1-46,10.3-69,15.4c-2.5,0.6-5,1-7.7,1.4c-1.3,0.2-2.7,0.5-4.1,0.7l-1.8,0.3v-1.8c0-2.1,0-4.1,0-6.1c0-4.4-0.1-8.6,0.1-12.7c0.2-3.6-0.9-4.8-4.8-5.7c-33.1-7.5-66.8-15.2-99.3-22.7c-23.5-5.4-46.9-10.7-70.4-16.1c-1.7-0.4-3.6-0.3-5.1,0.2c-16.4,5.3-32.8,10.7-49.3,16.1c-23.2,7.6-47.3,15.5-71,23.1c-4.9,1.6-6.4,3.6-6.3,8.5c0.3,13.2,0.2,26.5,0.2,39.5c0,4,0,8.1,0,12.1c0,1.9-0.1,3.8-0.3,5.8c-0.1,1-0.1,1.9-0.2,3l-0.1,1.6l-1.6-0.2c-3.6-0.4-7-0.8-10.4-1.2c-7.9-0.9-15.4-1.8-22.9-2.1c-5.9-0.3-13.5-0.3-20,1.8c-73.1,24-138.9,45.7-204.4,68c-68.3,23.4-120.2,67.7-154.1,131.9C18.7,649.5,7.8,694.7,7,746.6c0,3,0.4,4.8,1.4,5.8c1,1,2.8,1.4,5.5,1.3c14.1-0.5,28-0.3,42.3-0.1c2.3,0,3.7-0.3,4.4-1c0.7-0.7,1-2.3,0.9-4.8c-0.1-3.1-0.3-6.3-0.4-9.4c-0.6-13.1-1.3-26.7,0.1-39.8C70.3,609.4,117,545.3,200,508.3c3.1-1.4,7.2-2,11.2-1.6c23.1,2.1,45.7,4.3,70.8,6.9c13.3,1.3,26.4,2.7,40.3,4.2c6.3,0.7,12.6,1.3,19.2,2l3.8,0.4l-3.1,2.3c-0.9,0.7-1.7,1.3-2.3,1.7c-1.1,0.8-1.9,1.4-2.7,2c-25.4,15.9-47.6,35.2-66,57.3c-38.1,45.9-59.7,99.7-66,164.6c-0.2,2.3,0,3.8,0.7,4.6c0.7,0.8,2.2,1.1,4.6,1.1c16.2-0.3,31.1-0.3,45.4,0c2.6,0.1,4.3-0.3,5-1.1c0.8-0.9,1.1-2.6,0.9-5.5c-2-33.4,1.5-62.9,10.7-89.9c12-35.2,29.4-64.5,51.6-86.8c23.5-23.7,53.1-40.5,88.1-49.8c8.8-2.4,17.8-3.5,27.3-4.7c4.3-0.6,8.8-1.1,13.2-1.8l1.7-0.3v65.8c0,63.1,0,128.4-0.1,192.6c0,3.6,0.5,5.6,1.6,6.7c1.1,1.1,3.1,1.6,6.4,1.6h0.1c48.3-0.1,96.6-0.2,144.5-0.2c49,0,97.7,0.1,145.6,0.2c3.4,0,5.4-0.5,6.5-1.5c1.1-1.1,1.5-3.1,1.5-6.7c-0.2-65.5-0.2-132.1-0.1-196.5v-63.4l50.7-8.5c36.7-6.2,73.2-12.3,109.7-18.5c25.1-4.2,50.2-8.4,75.3-12.7c61.4-10.3,124.9-20.9,187.2-32c60.9-10.8,110.6-12.5,156.6-5.2c3.5,0.5,8.2,2.2,10.9,5.3c3.2,3.6,6.5,7.2,9.6,10.7c11,12.1,22.3,24.6,32,38c55.8,77.3,87.4,169.6,96.6,282l0.1,0.8c0.3,4,0.5,6.5,1.4,7.3c0.9,0.8,3.6,0.8,7.9,0.8H1913C1912.5,779,1912.1,777.9,1911.7,776.9z M410.4,408.6l43.4,4.8v34.9l-43.4-4.1V408.6z M209.9,501.3c-34.3,10.7-65.4,31-92.4,60.4c-44,47.9-64.3,107.3-60.3,176.8c0.1,1.1,0.2,2.2,0.3,3.4c0.1,1.2,0.2,2.4,0.3,3.6c0,0.7-0.1,1.3-0.2,2c-0.1,0.3-0.1,0.7-0.2,1l-0.2,1.3H11.5v-1.5c0-2.8-0.1-5.7-0.1-8.5c-0.1-6.1-0.3-12.3,0.2-18.5c5.5-62,27-115.8,63.8-159.8c31.7-37.9,69.9-64.7,113.6-79.8c49.3-17,99.6-33.6,148.3-49.7c20.5-6.8,41.7-13.8,62.5-20.7c0.8-0.3,1.6-0.5,2.6-0.8l3.7-1.2v34.9l-1.1,0.3c-6.4,1.9-12.9,3.8-19.3,5.7c-14.1,4.1-28.7,8.4-43.1,12.6c-13.9,4-28.1,8-41.8,11.9C270.9,483.2,240,491.9,209.9,501.3z M453.8,511.2l-1.4,0.1c-60.6,3.1-110,28.7-147,76.2c-34.4,44.2-49.8,96.8-47.1,160.9l0.1,1.6h-51.6l0.4-1.8c1.3-6.2,2.5-12.5,3.6-18.5c2.6-13.7,5.1-26.6,8.5-39.7c12.8-48.4,37-89.8,71.8-123.2c16.7-16,36.9-29.6,54.6-41.7c6.7-4.5,15-6.7,23-8.9c1.7-0.5,3.5-0.9,5.1-1.4c18.3-5.2,36.9-10.2,55-15c5.5-1.5,11-2.9,16.6-4.4c1.4-0.4,2.7-0.6,4.3-0.8c0.8-0.1,1.6-0.2,2.4-0.4l1.7-0.3V511.2z M211.2,503.9l13.6-3.6l21.4-6.2c15-4.4,30-8.7,45-13.1c9.6-2.8,19.3-5.6,28.9-8.5c26.1-7.7,53.1-15.7,79.9-22.7c8.3-2.2,17.3-1.4,26.1-0.7c1.8,0.1,3.5,0.3,5.2,0.4c22.5,1.6,23.2,2.3,23.2,25.1c0,14.1-0.5,14.8-13.4,18.3l-0.8,0.2c-10.3,2.8-20.8,5.8-31,8.7c-16.2,4.6-32.9,9.3-49.5,13.6c-3.3,0.8-6.7,1.1-10.2,1.1c-3.6,0-7.3-0.3-11-0.7c-28.5-2.7-57.5-5.7-85.5-8.5c-8-0.8-16.1-1.7-24.1-2.5 M585.4,303.4l1.8,0.4c7.3,1.7,14.6,3.3,21.8,4.9c15.9,3.6,32.4,7.3,48.5,11c9.4,2.2,18.8,4.3,28.2,6.5c20.6,4.8,42,9.8,63,14.3c6.3,1.4,8.6,4.2,8.4,10.8l0,0.8c-0.3,13.8-0.9,14.4-15.1,17.6c-50.5,11.2-101,22.4-151.6,33.6c-0.6,0.1-1.2,0.2-2,0.2c-0.4,0-0.9,0-1.5,0.1l-1.6,0.1V303.4z M1440.6,377.8l7,3.5l-13.3-1.5c-6.9-0.4-13.8-2-20.4-2.5c-15-1.1-29.2-2.2-43.6-2.1c-19.6,0.2-39.6,1.4-59,2.6c-9.5,0.6-19.3,1.1-29,1.6c-3.2,0.2-6.8,0.2-9.7-1.2c-69.6-34.1-144.5-41.9-228.9-23.7c-85.9,18.5-173.4,36.8-258,54.6c-39,8.2-78,16.4-117,24.6c-23.8,5-47.7,10.1-71.5,15.1c-16.1,3.4-32.3,6.9-48.4,10.3c-1.5,0.3-3,0.5-4.7,0.8c-0.9,0.1-1.8,0.3-2.8,0.4l-1.7,0.3v-1.8c0-3.1,0-6.2,0-9.2c0-9.2-0.1-17.8,0.3-26.6c0.1-2.8,4.4-5.9,7.1-6.5c44.3-10.1,88-19.7,132.6-29.5c29.7-6.5,59.8-13.3,89-19.8c78.7-17.5,160.1-35.7,240.4-52.4c29.5-6.1,62.1-9.7,102.5-11.3c105.3-4.1,206.5,16.1,301,60.1c5.3,2.4,10.5,5.1,15.6,7.7c1.6,0.8,3.2,1.6,4.7,2.4 M1268.2,380.8l-66,13.4c-7.2,1.5-14.3,2.9-21.4,4.4c-22.6,4.6-45.9,9.4-68.9,13.8c-1.7,0.3-3.4,0.5-5.1,0.5c-3,0-5.7-0.5-7.8-1.6c-21.5-10.8-43.3-22.1-64.3-33.1c-6.1-3.2-12.2-6.3-18.3-9.5c-0.5-0.3-1-0.6-1.5-0.9c-0.3-0.2-0.6-0.4-0.9-0.6l-2.7-1.7l3-1c38.2-12.8,85.7-18.3,133.8-15.6c48.1,2.7,89.6,13.3,116.8,29.8L1268.2,380.8z M581.3,776.3H457.7l0-79.8c0-112.2,0-228.3-0.2-342.4c0-7.7,2.4-11,9.6-13.2c25.8-8,51.9-16.6,77.2-24.9c9.4-3.1,18.8-6.2,28.1-9.2c1.5-0.5,2.9-0.9,4.6-1.4c0.8-0.2,1.7-0.5,2.7-0.8l1.9-0.6v101.3l-1.2,0.3c-3.4,0.8-6.9,1.6-10.3,2.4c-8,1.9-16.2,3.8-24.4,5.2c-7.9,1.3-10.3,4.2-9.8,12c0.6,9.4,0.5,18.7,0.3,28.6c0,3.7-0.1,7.4-0.1,11.3l45-9.2V776.3z M756.7,776.4H585.8V454.6l1.2-0.3c3.1-0.7,6.2-1.3,9.3-2c9.3-2,19-4.1,28.6-6.1c2.2-0.4,4.7-0.3,6.9,0.3c39.9,12,80.4,24.2,119.5,36.1l2.2,0.7c0.6,0.2,1.2,0.5,1.7,0.8c0.2,0.1,0.5,0.2,0.7,0.4l0.8,0.4V776.4z M760.3,482.1c-31.1-9.3-62.7-19-93.3-28.3l-15.6-4.8c-1.7-0.5-3.4-1.1-5-1.6l-11.8-3.1l8.6-2l1.1-0.2c6.4-1.4,12.8-2.7,19.2-4.1c13.6-2.9,27.7-6,41.6-8.9c90.6-19.2,193.3-40.9,293.1-61.8c3.6-0.8,7.8-0.3,10.6,1.1c22.3,11.3,44.8,23,66.6,34.4l15.9,8.3c0.5,0.3,0.9,0.6,1.7,1.1c0.4,0.3,1,0.7,1.7,1.2l2.9,2l-17.7,3.6c-9.7,2-19,3.9-28.3,5.8c-105.2,21.3-192.9,39-283.7,57.3c-1.6,0.3-3,0.5-4.3,0.5C762.3,482.6,761.2,482.4,760.3,482.1z M1337.5,427.8l5.4,3.8l-8.1-1c-2.6-0.2-5.2-0.4-7.7-0.6c-5.3-0.4-10.3-0.8-15.3-1.3c-46.5-4.3-91.1,1.9-128.5,8.5c-47.8,8.4-96.4,16.5-143.5,24.4c-21.7,3.6-43.4,7.3-65.1,10.9c-40.1,6.8-80.2,13.6-120.3,20.4c-29.2,4.9-58.3,9.9-87.5,14.8c-0.9,0.1-1.8,0.2-2.8,0.3c-0.5,0-1,0.1-1.6,0.2l-1.7,0.2V487l1.2-0.2c5.6-1.1,11.2-2.3,16.8-3.4c12.1-2.5,24.2-5,36.4-7.4l70.1-14.2c74.5-15.1,151.6-30.7,227.5-46c54.3-11,109.1-21.7,156.2-31c1.9-0.4,6.5-1,9.3,0.9c16.1,11.1,32.3,22.6,48,33.8l8,5.7 M1492.8,776.5l-0.1-1.4c-5-65.8-17.8-124.4-39.1-179.1c-24-61.8-56.1-112.6-98.1-155.5l-3.3-3.4l4.7,0.9c33.3,6.3,63.7,15.9,92.8,29.5c80.5,37.4,143.8,97.3,193.7,183.2c20.8,35.9,37.5,74.2,49.5,113.8c0.6,2.1,1.3,4.3,1.9,6.6c0.3,1.1,0.6,2.3,1,3.5l0.5,1.9H1492.8z M1784.1,774.3c0,0.2-0.1,0.5-0.1,0.8l-0.2,1.3h-84l-0.3-1.1c-18.6-64.4-46.9-122.8-84.2-173.7c-65.2-88.9-150.2-144.7-252.7-165.7c-12.3-2.5-20.8-8.6-28.1-14.7c-10.6-9-21.8-17.1-33.7-25.7c-5-3.6-10.1-7.4-15.3-11.2l-3.2-2.4l4-0.3c5.7-0.4,11.3-0.8,16.9-1.2c12.4-0.9,24.1-1.8,36.1-2.3c35.2-1.5,71.2,0.8,110,7.2c4.6,0.7,9.4,2.5,13.6,4.9c62.4,36,119.9,83.3,170.9,140.4c61.8,69.2,111.5,148.3,147.6,235.2c0.9,2.2,1.8,4.4,2.5,6.6C1784.4,773.1,1784.3,773.7,1784.1,774.3z M1456,383.2l24.6,7c7.1,2.2,14.2,4.3,21.2,6.4c15.3,4.5,31.1,9.2,46.3,14.7c60.1,21.6,116.3,54.4,167.3,97.7c41,34.8,78,74.8,109.8,118.9c30.6,42.3,57.4,89.7,79.7,140.8c0.5,1.1,0.9,2.3,1.3,3.7c0.2,0.8,0.5,1.6,0.9,2.6l0.7,2h-22.4c-6.9,0-13.6,0-20.3,0c-23.9,0-47,0-70.5-0.2c-3,0-6.5-3.8-7.5-6.2c-16.7-41.5-37.7-83-62.5-123.5c-27.4-44.7-59.1-86.9-94.3-125.4c-43.6-47.7-93-89.1-147-123'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 150%;
+    background-position: center;
+}
+
+/* Card */
+.nr-card {
+    position: relative; z-index: 2;
+    width: 100%; max-width: 640px;
+    max-height: 85vh;
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    animation: nrCardIn 0.5s ease-out;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+}
+@keyframes nrCardIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Watermark */
+.nr-card::after {
+    content: '';
+    position: absolute;
+    bottom: -430px; right: -611px;
+    width: 1200px; height: 1200px;
+    background: url('https://ufj.edu.br/wp-content/uploads/2026/01/cropped-PNG_VERTICAL_SEM_DESCRITOR.png') no-repeat center / contain;
+    opacity: 0.04;
+    pointer-events: none;
+}
+
+/* Header */
+.nr-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px; padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative; z-index: 1;
+}
+.nr-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: #f0f9ff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.nr-icon svg { width: 24px; height: 24px; color: #0891b2; }
+.nr-header-text h1 {
+    font-size: 20px; font-weight: 700; color: #1a2233;
+    margin-bottom: 2px;
+}
+.nr-header-text p {
+    font-size: 13px; color: #94a3b8;
+}
+
+/* Content */
+.nr-content {
+    flex: 1; overflow-y: auto;
+    padding-right: 8px;
+    position: relative; z-index: 1;
+    font-size: 14px; color: #334155;
+    line-height: 1.7;
+}
+.nr-content::-webkit-scrollbar { width: 4px; }
+.nr-content::-webkit-scrollbar-track { background: transparent; }
+.nr-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.nr-content h2 {
+    font-size: 16px; font-weight: 700; color: #1a2233;
+    margin: 20px 0 8px; padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+}
+.nr-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.nr-content a {
+    color: #17428c; text-decoration: none;
+}
+.nr-content a:hover { text-decoration: underline; }
+.nr-content img { max-width: 20px; vertical-align: middle; margin-right: 4px; }
+
+/* Actions */
+.nr-actions {
+    display: flex; gap: 12px; margin-top: 24px;
+    padding-top: 20px; border-top: 1px solid #e2e8f0;
+    position: relative; z-index: 1;
+}
+.nr-btn {
+    flex: 1; padding: 13px 20px;
+    border-radius: 12px; border: none;
+    font-size: 14px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nr-btn-secondary {
+    background: #f1f5f9; color: #475569;
+}
+.nr-btn-secondary:hover { background: #e2e8f0; }
+.nr-btn-primary {
+    background: linear-gradient(135deg, #1a4fa0, #17428c);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(23,66,140,0.35);
+}
+.nr-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(23,66,140,0.45);
+}
+
+/* Footer */
+.nr-footer {
+    position: absolute; bottom: 24px; left: 0; right: 0; z-index: 2;
+    text-align: center; font-size: 11px; color: rgba(255,255,255,0.3);
+}
+.nr-footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+.nr-footer a:hover { color: rgba(255,255,255,0.8); }
+
+@media (max-width: 680px) {
+    .nr-card { margin: 16px; padding: 24px; max-height: 90vh; }
+    .nr-actions { flex-direction: column; }
+}
+`;
+
+        // Extract original form and buttons
+        const originalForm = document.querySelector('form');
+        const formAction = originalForm ? originalForm.action : '';
+        const formName = originalForm ? originalForm.name : '';
+        const viewState = document.getElementById('javax.faces.ViewState')?.value || '';
+
+        // Extract announcements
+        const avisos = document.querySelectorAll('.aviso-ufj');
+        let contentHTML = '';
+        avisos.forEach(aviso => {
+            contentHTML += aviso.innerHTML;
+        });
+
+        // If no .aviso-ufj, try to get content from form
+        if (!contentHTML) {
+            const h2s = document.querySelectorAll('#conteudo h2');
+            h2s.forEach(h2 => { contentHTML += '<h2>' + h2.textContent + '</h2>'; });
+            const divs = document.querySelectorAll('#conteudo div');
+            divs.forEach(d => { if (!d.closest('.aviso-ufj')) contentHTML += d.outerHTML; });
+        }
+
+        // Extract button names
+        const dismissBtn = originalForm?.querySelector('input[type="submit"][value*="visualizar"]');
+        const continueBtn = originalForm?.querySelector('input[type="submit"][value*="Continuar"]');
+        const dismissName = dismissBtn ? dismissBtn.name : '';
+        const continueName = continueBtn ? continueBtn.name : '';
+
+        const bellIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+
+        const style = document.createElement('style');
+        style.textContent = noticeCSS;
+        document.head.appendChild(style);
+
+        const root = document.createElement('div');
+        root.id = 'notice-redesign';
+        root.innerHTML = `
+            <div class="nr-bg"></div>
+            <div class="nr-card">
+                <div class="nr-header">
+                    <div class="nr-icon">${bellIcon}</div>
+                    <div class="nr-header-text">
+                        <h1>Comunicados</h1>
+                        <p>Leia os avisos antes de continuar</p>
+                    </div>
+                </div>
+                <div class="nr-content">
+                    ${contentHTML}
+                </div>
+                <div class="nr-actions">
+                    <form method="post" action="${formAction}" style="display:contents;">
+                        <input type="hidden" name="${formName}" value="${formName}">
+                        <input type="hidden" name="javax.faces.ViewState" value="${viewState}">
+                        ${dismissName ? `<button type="submit" name="${dismissName}" class="nr-btn nr-btn-secondary">Não exibir novamente</button>` : ''}
+                        ${continueName ? `<button type="submit" name="${continueName}" class="nr-btn nr-btn-primary">Continuar</button>` : ''}
+                    </form>
+                </div>
+            </div>
+            <div class="nr-footer">
+                SIGAA | <a href="https://ufj.edu.br" target="_blank">UFJ</a> • Secretaria de Tecnologia da Informação
+            </div>
+        `;
+
+        document.body.appendChild(root);
+    }
+
+    // ========================================
+    // BUILD INNER PAGES (Páginas internas SIGAA)
+    // ========================================
+    function buildInner() {
+        // ---- Inject persistent sidebar (same look as dashboard) ----
+        (function injectInnerSidebar() {
+            if (document.getElementById('sg-inner-nav')) return;
+            function decodeEnt(s) {
+                return s.replace(/&#(\d+);/g, function (_, c) { return String.fromCharCode(+c); })
+                    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            }
+            function sgNav(displayText) {
+                var menuKey = Object.keys(window).find(function (k) {
+                    return /form_menu_discente.*_menu$/.test(k) && Array.isArray(window[k]);
+                });
+                function searchMenu(arr) {
+                    if (!Array.isArray(arr)) return null;
+                    for (var i = 0; i < arr.length; i++) {
+                        var item = arr[i];
+                        if (!Array.isArray(item)) continue;
+                        var raw = item[1] ? String(item[1]).replace(/<[^>]*>/g, '').trim() : '';
+                        var text = decodeEnt(raw);
+                        if (text === displayText && typeof item[2] === 'string' && item[2].indexOf(':A]') !== -1)
+                            return item[2];
+                        for (var j = 5; j < item.length; j++) {
+                            var f = searchMenu(item[j]);
+                            if (f) return f;
+                        }
+                    }
+                    return null;
+                }
+                var action = menuKey ? searchMenu(window[menuKey]) : null;
+                var form = document.querySelector('form[id$="form_menu_discente"]') ||
+                    document.querySelector('form[id*="form_menu_discente"]');
+                if (action && form) {
+                    var inp = form.querySelector('input[name="jscook_action"]');
+                    if (!inp) {
+                        inp = document.createElement('input');
+                        inp.type = 'hidden'; inp.name = 'jscook_action'; form.appendChild(inp);
+                    }
+                    inp.value = action; form.submit();
+                } else {
+                    var all = Array.from(document.querySelectorAll('a'));
+                    var t = all.find(function (a) { return a.textContent.trim() === displayText; });
+                    if (t) t.click();
+                }
+            }
+
+            var nav = document.createElement('div');
+            nav.id = 'sg-inner-nav';
+            nav.style.cssText = 'position:fixed;top:0;left:0;width:220px;height:100vh;z-index:999999;' +
+                'background:linear-gradient(180deg,#0d2254 0%,#17428c 100%);' +
+                'font-family:Plus Jakarta Sans,system-ui,sans-serif;overflow-y:auto;' +
+                'box-shadow:4px 0 24px rgba(0,0,0,0.2);';
+
+            var items = [
+                ['Realizar Matr\u00EDcula', '\uD83D\uDCCB Realizar Matr\u00EDcula'],
+                ['Minhas Notas', '\uD83D\uDCCA Minhas Notas'],
+                ['Consultar Hist\u00F3rico', '\uD83D\uDCDA Hist\u00F3rico'],
+                ['Comprovante de Matr\u00EDcula', '\uD83C\uDF93 Comprovante'],
+                ['Emitir Extrato Acad\u00EAmico', '\uD83D\uDCC4 Extrato Acad\u00EAmico'],
+                ['Ver Comprovante de Solicita\u00E7\u00E3o de Matr\u00EDcula', '\u2705 Comprovante Solicit.'],
+                ['SECAO:Outros', null],
+                ['Gerenciar Est\u00E1gios', '\uD83D\uDCBC Est\u00E1gio'],
+                ['Aderir ao Cadastro Estudantil', '\uD83D\uDCB0 Bolsas'],
+            ];
+
+            var html = '<div style="padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">' +
+                '<div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;">U</div>' +
+                '<div><div style="color:#fff;font-weight:700;font-size:13px;">Portal do Discente</div>' +
+                '<div style="color:rgba(255,255,255,0.5);font-size:10px;">SIGAA \u2014 UFJ</div></div></div>' +
+                '<div style="padding:12px 8px 6px;">' +
+                '<a href="/sigaa/verPortalDiscente.do" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:600;background:rgba(255,255,255,0.1);margin-bottom:8px;">' +
+                '\u2190 Voltar ao In\u00EDcio</a>' +
+                '<div style="color:rgba(255,255,255,0.35);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:8px 12px 4px;">Ensino</div>';
+
+            for (var i = 0; i < items.length; i++) {
+                var key = items[i][0]; var label = items[i][1];
+                if (key.indexOf('SECAO:') === 0) {
+                    html += '<div style="color:rgba(255,255,255,0.35);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:12px 12px 4px;">' + key.replace('SECAO:', '') + '</div>';
+                } else {
+                    html += '<a class="sg-il" data-sg="' + key + '" href="#" style="display:flex;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:12px;">' + label + '</a>';
+                }
+            }
+            html += '</div>';
+            nav.innerHTML = html;
+
+            nav.querySelectorAll('.sg-il').forEach(function (a) {
+                a.addEventListener('mouseenter', function () { a.style.background = 'rgba(255,255,255,0.12)'; });
+                a.addEventListener('mouseleave', function () { a.style.background = 'none'; });
+                a.addEventListener('click', function (e) { e.preventDefault(); sgNav(a.getAttribute('data-sg')); });
+            });
+
+            document.body.appendChild(nav);
+
+            var ps = document.createElement('style');
+            ps.textContent = '#container{margin-left:220px!important;}';
+            document.head.appendChild(ps);
+        })();
+
+        // ---- Hide original SIGAA header and inject custom top bar ----
+        (function injectInnerTopBar() {
+            if (document.getElementById('sg-inner-topbar')) return;
+
+            var userName = '', userUnit = '', semestre = '', breadcrumb = '', noticias = '';
+            try {
+                var el;
+                el = document.querySelector('#painel-usuario .usuario span'); if (el) userName = el.textContent.trim();
+                el = document.querySelector('#painel-usuario .periodo-atual strong'); if (el) semestre = el.textContent.trim();
+                el = document.querySelector('#conteudo h2'); if (el) breadcrumb = el.textContent.replace(/\s+/g, ' ').trim().replace(/>/g, '\u203a');
+                el = document.querySelector('#menu-usuario .caixa-postal a'); if (el) noticias = el.textContent.trim();
+            } catch (e) { }
+
+            var hideStyle = document.createElement('style');
+            hideStyle.textContent = '#cabecalho{display:none!important}#painel-usuario{display:none!important}#menu-dropdown{display:none!important}' +
+                '#container{padding-top:0!important;margin-left:220px!important;box-sizing:border-box!important}' +
+                '#rodape{background:#0d2254!important;color:rgba(255,255,255,0.5)!important;font-size:11px!important}' +
+                '#conteudo{margin:20px 24px!important;background:#fff!important;border-radius:16px!important;padding:28px!important;box-shadow:0 4px 24px rgba(23,66,140,0.1)!important;overflow-x:auto!important}' +
+                '#conteudo table{max-width:100%!important;display:block!important;overflow-x:auto!important}';
+            document.head.appendChild(hideStyle);
+
+            var topBar = document.createElement('div');
+            topBar.id = 'sg-inner-topbar';
+            topBar.style.cssText = 'position:sticky;top:0;z-index:99998;margin-left:220px;background:linear-gradient(135deg,#17428c 0%,#0f2d66 100%);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;box-shadow:0 2px 16px rgba(0,0,0,0.25);font-family:Plus Jakarta Sans,system-ui,sans-serif;';
+
+            var left = '<div style="display:flex;align-items:center;gap:12px;">' +
+                '<div style="color:#fff;font-weight:700;font-size:14px;opacity:0.85;">SIGAA \u2014 UFJ</div>' +
+                (breadcrumb ? '<div style="color:rgba(255,255,255,0.3);font-size:12px;">\u203a</div><div style="color:rgba(255,255,255,0.7);font-size:12px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + breadcrumb + '</div>' : '') +
+                '</div>';
+
+            var right = '<div style="display:flex;align-items:center;gap:16px;">' +
+                (semestre ? '<div style="background:rgba(255,255,255,0.12);padding:4px 12px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;">' + semestre + '</div>' : '') +
+                (noticias ? '<div style="color:rgba(255,255,255,0.65);font-size:11px;">' + noticias + '</div>' : '') +
+                (userName ? '<div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">' + userName[0] + '</div><div style="color:#fff;font-size:12px;font-weight:600;">' + userName.split(' ')[0] + '</div></div>' : '') +
+                '<a href="/sigaa/logar.do?dispatch=logOff" style="color:rgba(255,255,255,0.6);font-size:11px;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;">Sair</a>' +
+                '</div>';
+
+            topBar.innerHTML = left + right;
+
+            var container = document.querySelector('#container');
+            if (container && container.parentNode) {
+                container.parentNode.insertBefore(topBar, container);
+            } else {
+                document.body.insertBefore(topBar, document.body.firstChild);
+            }
+        })();
+
+        const SVG_PORTICO = `url("data:image/svg+xml,%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cpath fill='rgba(255,255,255,0.13)' d='M1911.7,776.9c-1.1-2.9-2-5.2-3-7.5c-44.9-103.8-107.8-191-186.9-259.3c-65.4-56.4-138.5-95.4-217.2-115.7c-34.1-8.8-62.4-16.9-89.2-32.7c-3-1.8-6.4-3.2-9.7-4.6c-1.2-0.5-2.4-1-3.6-1.6c-91.9-40.6-189.7-59.2-290.6-55.2c-39,1.5-72.4,5.2-102.1,11.1c-55.7,11.1-112.1,23.8-166.6,36.1c-22.6,5.1-46,10.3-69,15.4c-2.5,0.6-5,1-7.7,1.4c-1.3,0.2-2.7,0.5-4.1,0.7l-1.8,0.3v-1.8c0-2.1,0-4.1,0-6.1c0-4.4-0.1-8.6,0.1-12.7c0.2-3.6-0.9-4.8-4.8-5.7c-33.1-7.5-66.8-15.2-99.3-22.7c-23.5-5.4-46.9-10.7-70.4-16.1c-1.7-0.4-3.6-0.3-5.1,0.2c-16.4,5.3-32.8,10.7-49.3,16.1c-23.2,7.6-47.3,15.5-71,23.1c-4.9,1.6-6.4,3.6-6.3,8.5c0.3,13.2,0.2,26.5,0.2,39.5c0,4,0,8.1,0,12.1c0,1.9-0.1,3.8-0.3,5.8c-0.1,1-0.1,1.9-0.2,3l-0.1,1.6l-1.6-0.2c-3.6-0.4-7-0.8-10.4-1.2c-7.9-0.9-15.4-1.8-22.9-2.1c-5.9-0.3-13.5-0.3-20,1.8c-73.1,24-138.9,45.7-204.4,68c-68.3,23.4-120.2,67.7-154.1,131.9C18.7,649.5,7.8,694.7,7,746.6c0,3,0.4,4.8,1.4,5.8c1,1,2.8,1.4,5.5,1.3c14.1-0.5,28-0.3,42.3-0.1c2.3,0,3.7-0.3,4.4-1c0.7-0.7,1-2.3,0.9-4.8c-0.1-3.1-0.3-6.3-0.4-9.4c-0.6-13.1-1.3-26.7,0.1-39.8C70.3,609.4,117,545.3,200,508.3c3.1-1.4,7.2-2,11.2-1.6c23.1,2.1,45.7,4.3,70.8,6.9c13.3,1.3,26.4,2.7,40.3,4.2c6.3,0.7,12.6,1.3,19.2,2l3.8,0.4l-3.1,2.3c-0.9,0.7-1.7,1.3-2.3,1.7c-1.1,0.8-1.9,1.4-2.7,2c-25.4,15.9-47.6,35.2-66,57.3c-38.1,45.9-59.7,99.7-66,164.6c-0.2,2.3,0,3.8,0.7,4.6c0.7,0.8,2.2,1.1,4.6,1.1c16.2-0.3,31.1-0.3,45.4,0c2.6,0.1,4.3-0.3,5-1.1c0.8-0.9,1.1-2.6,0.9-5.5c-2-33.4,1.5-62.9,10.7-89.9c12-35.2,29.4-64.5,51.6-86.8c23.5-23.7,53.1-40.5,88.1-49.8c8.8-2.4,17.8-3.5,27.3-4.7c4.3-0.6,8.8-1.1,13.2-1.8l1.7-0.3v65.8c0,63.1,0,128.4-0.1,192.6c0,3.6,0.5,5.6,1.6,6.7c1.1,1.1,3.1,1.6,6.4,1.6h0.1c48.3-0.1,96.6-0.2,144.5-0.2c49,0,97.7,0.1,145.6,0.2c3.4,0,5.4-0.5,6.5-1.5c1.1-1.1,1.5-3.1,1.5-6.7c-0.2-65.5-0.2-132.1-0.1-196.5v-63.4l50.7-8.5c36.7-6.2,73.2-12.3,109.7-18.5c25.1-4.2,50.2-8.4,75.3-12.7c61.4-10.3,124.9-20.9,187.2-32c60.9-10.8,110.6-12.5,156.6-5.2c3.5,0.5,8.2,2.2,10.9,5.3c3.2,3.6,6.5,7.2,9.6,10.7c11,12.1,22.3,24.6,32,38c55.8,77.3,87.4,169.6,96.6,282l0.1,0.8c0.3,4,0.5,6.5,1.4,7.3c0.9,0.8,3.6,0.8,7.9,0.8H1913C1912.5,779,1912.1,777.9,1911.7,776.9z'/%3E%3C/svg%3E")`;
+
+        const style = document.createElement('style');
+        style.textContent = `
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+body, #container {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+    background: #eef2f8 !important;
+    margin: 0 !important;
+}
+
+/* ---- HEADER ---- */
+#cabecalho, #info-sistema {
+    background: linear-gradient(135deg, #17428c 0%, #0f2d66 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+#cabecalho::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: ${SVG_PORTICO};
+    background-repeat: no-repeat;
+    background-size: 120%;
+    background-position: center bottom;
+    pointer-events: none;
+    z-index: 0;
+}
+#info-sistema h1, #info-sistema h3,
+#info-sistema a, #info-sistema div.dir,
+#info-sistema span {
+    color: rgba(255,255,255,0.9) !important;
+    position: relative; z-index: 1;
+}
+#info-sistema h1 { font-size: 14px !important; font-weight: 700 !important; margin: 0 !important; }
+#info-sistema h3 { font-size: 12px !important; font-weight: 400 !important; opacity: 0.8; margin: 0 !important; }
+
+/* ---- USER PANEL ---- */
+#painel-usuario {
+    background: #0d2254 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    position: relative; z-index: 1;
+}
+#menu-usuario ul li a,
+#menu-usuario ul li span a {
+    color: rgba(255,255,255,0.8) !important;
+    font-size: 12px !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    text-decoration: none !important;
+}
+#menu-usuario ul li a:hover { color: #fff !important; }
+#info-usuario p {
+    color: rgba(255,255,255,0.7) !important;
+    font-size: 11px !important;
+    margin: 0 !important;
+}
+#info-usuario p.usuario span {
+    color: #fff !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+}
+
+/* ---- NAV MENU (tabs) ---- */
+#menu-dropdown {
+    background: #17428c !important;
+    border-bottom: 2px solid rgba(255,255,255,0.12) !important;
+}
+#menu-dropdown .wrapper { padding: 0 16px !important; }
+
+/* ---- BREADCRUMB ---- */
+#conteudo h2, #conteudo h2 a {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    font-size: 13px !important;
+    color: #17428c !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    margin: 0 0 12px 0 !important;
+}
+
+/* ---- CONTENT AREA ---- */
+#conteudo {
+    background: #fff !important;
+    margin: 20px 24px !important;
+    max-width: calc(100% - 48px) !important;
+    border-radius: 16px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 4px 24px rgba(23,66,140,0.08), 0 1px 4px rgba(0,0,0,0.04) !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    font-size: 13px !important;
+    color: #1a2233 !important;
+    line-height: 1.7 !important;
+}
+#conteudo .descricaoOperacao {
+    background: #f8faff !important;
+    border-left: 4px solid #17428c !important;
+    border-radius: 0 12px 12px 0 !important;
+    padding: 20px 24px !important;
+    margin-bottom: 20px !important;
+}
+#conteudo .descricaoOperacao h4 {
+    color: #17428c !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    margin: 0 0 12px 0 !important;
+}
+#conteudo .descricaoOperacao p {
+    color: #374151 !important;
+    margin: 8px 0 !important;
+}
+#conteudo .descricaoOperacao ul {
+    margin: 8px 0 8px 20px !important;
+    color: #374151 !important;
+}
+#conteudo .descricaoOperacao a {
+    color: #17428c !important;
+    text-decoration: underline !important;
+}
+#conteudo .descricaoOperacao .periodo {
+    color: #17428c !important;
+    background: rgba(23,66,140,0.08) !important;
+    padding: 1px 6px !important;
+    border-radius: 4px !important;
+}
+
+/* ---- SUBMIT BUTTON ---- */
+#conteudo center input[type=submit],
+#conteudo input[type=submit],
+#conteudo input[type=button] {
+    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 16px rgba(23,66,140,0.3) !important;
+    transition: all 0.2s !important;
+    margin: 16px 0 !important;
+}
+#conteudo center input[type=submit]:hover,
+#conteudo input[type=submit]:hover {
+    background: linear-gradient(135deg, #1e5ab3 0%, #1a4fa0 100%) !important;
+    box-shadow: 0 6px 20px rgba(23,66,140,0.4) !important;
+}
+
+/* ---- FOOTER ---- */
+#rodape {
+    background: #0d2254 !important;
+    color: rgba(255,255,255,0.6) !important;
+    text-align: center !important;
+    padding: 12px !important;
+    font-size: 11px !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    margin-top: 16px !important;
+}
+#rodape p { margin: 0 !important; color: rgba(255,255,255,0.6) !important; }
+#rodape a { color: rgba(255,255,255,0.8) !important; }
+
+/* ---- TABLES ---- */
+#conteudo table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 12px !important;
+}
+#conteudo table th {
+    background: #17428c !important;
+    color: #fff !important;
+    padding: 10px 12px !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+}
+#conteudo table td {
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #e5eaf3 !important;
+    color: #374151 !important;
+}
+#conteudo table tr:hover td { background: #f0f5ff !important; }
+`;
+        document.head.appendChild(style);
+
+        // Floating back button to the redesigned Portal
+        const backBtn = document.createElement('a');
+        backBtn.href = '/sigaa/verPortalDiscente.do';
+        backBtn.setAttribute('style',
+            'position:fixed;bottom:20px;right:20px;z-index:999999;' +
+            'background:linear-gradient(135deg,#1a4fa0 0%,#17428c 100%);' +
+            'color:#fff;font-family:Plus Jakarta Sans,system-ui,sans-serif;' +
+            'font-size:13px;font-weight:600;text-decoration:none;' +
+            'padding:10px 18px;border-radius:12px;' +
+            'box-shadow:0 4px 16px rgba(23,66,140,0.35);' +
+            'display:flex;align-items:center;gap:8px;'
+        );
+        backBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 12l7-7M3 12l7 7"/></svg> Portal do Discente';
+        backBtn.onmouseenter = () => backBtn.style.boxShadow = '0 6px 24px rgba(23,66,140,0.5)';
+        backBtn.onmouseleave = () => backBtn.style.boxShadow = '0 4px 16px rgba(23,66,140,0.35)';
+        document.body.appendChild(backBtn);
+    }
+
+    // ========================================
     // INIT - Route to correct page
     // ========================================
     function init() {
-        if (PAGE_TYPE === 'dashboard') {
+        if (PAGE_TYPE === 'login') {
+            buildLogin();
+        } else if (PAGE_TYPE === 'notice') {
+            buildNotice();
+        } else if (PAGE_TYPE === 'dashboard') {
             build();
         } else if (PAGE_TYPE === 'grades') {
             buildGrades();
+        } else if (PAGE_TYPE === 'inner') {
+            buildInner();
         }
     }
 
