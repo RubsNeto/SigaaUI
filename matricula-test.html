@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGAA UI — Matrícula On-Line</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   SIGAA UI – MATRÍCULA PROTOTYPE
+   Institutional identity: light bg, white cards, blue sidebar
+   Same visual language as the main dashboard
+   ================================================================ */
+
+:root {
+    --bg: #eef2f8;
+    --card: #fff;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08);
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --text: #1a2233;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --accent: #0891b2;
+    --accent-bg: rgba(8,145,178,0.1);
+    --blue: #17428c;
+    --blue-light: rgba(23,66,140,0.08);
+    --green: #16a34a;
+    --green-bg: rgba(22,163,74,0.08);
+    --red: #dc2626;
+    --red-bg: rgba(220,38,38,0.06);
+    --amber: #d97706;
+    --amber-bg: rgba(217,119,6,0.08);
+    --purple: #7c3aed;
+    --purple-bg: rgba(124,58,237,0.08);
+    --pink: #db2777;
+    --pink-bg: rgba(219,39,119,0.08);
+    --sidebar-w: 215px;
+    --radius: 12px;
+    --radius-lg: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { zoom: 1.1; height: 100%; }
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* ================================================================
+   LAYOUT (same as dashboard)
+   ================================================================ */
+.sr-layout { display: flex; height: 100%; overflow: hidden; }
+
+/* ================================================================
+   SIDEBAR (exact dashboard copy)
+   ================================================================ */
+.sr-sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: #0d2254;
+    color: rgba(255,255,255,0.7);
+    display: flex; flex-direction: column;
+    overflow: visible; z-index: 100;
+}
+.sr-sidebar-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sr-logo {
+    width: 36px; height: 36px;
+    background: #17428c;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0;
+}
+.sr-header-title { color: #fff; font-size: 13px; font-weight: 600; }
+.sr-header-sub { color: rgba(255,255,255,0.5); font-size: 10px; }
+.sr-sidebar-content { padding: 14px 10px; flex: 1; overflow: visible; }
+.sr-sidebar-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: rgba(255,255,255,0.35); font-weight: 600;
+    margin-bottom: 12px; padding-left: 12px;
+}
+.sr-menu { display: flex; flex-direction: column; gap: 4px; }
+.sr-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left;
+    position: relative; text-decoration: none;
+    transition: all 0.15s ease;
+}
+.sr-menu-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
+.sr-menu-item.active {
+    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(23,66,140,0.4);
+}
+.sr-menu-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sr-submenu {
+    display: none; position: fixed; left: var(--sidebar-w);
+    margin-top: -8px;
+    background: rgba(10, 31, 74, 0.97);
+    backdrop-filter: blur(12px);
+    border-radius: 14px; padding: 8px; min-width: 190px;
+    z-index: 999999;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.05);
+    opacity: 0; transform: translateY(8px) scale(0.96);
+    animation: menuReveal 0.2s ease-out forwards;
+}
+.sr-menu-item:hover > .sr-submenu { display: block; }
+@keyframes menuReveal {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.sr-submenu-item {
+    display: block; padding: 11px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.85); text-decoration: none;
+    white-space: nowrap; transition: all 0.15s ease;
+}
+.sr-submenu-item:hover { background: rgba(255,255,255,0.12); color: #fff; transform: translateX(4px); }
+.sr-sidebar-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 16px 0; }
+.sr-sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.08); }
+.sr-logout {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
+    padding: 10px 12px; color: #fff; font-size: 12px; font-weight: 500;
+    cursor: pointer; width: 100%; text-decoration: none;
+}
+.sr-logout:hover { background: rgba(255,255,255,0.15); }
+.sr-logout svg { width: 14px; height: 14px; }
+
+/* ================================================================
+   MAIN AREA
+   ================================================================ */
+.sr-main {
+    flex: 1; display: flex; flex-direction: column;
+    min-width: 0; overflow: hidden;
+}
+.sr-content {
+    flex: 1; overflow-y: auto;
+    padding: 20px 24px;
+}
+.sr-container { max-width: 100%; }
+
+/* Scrollbar */
+.sr-content::-webkit-scrollbar { width: 6px; }
+.sr-content::-webkit-scrollbar-track { background: transparent; }
+.sr-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+
+/* ================================================================
+   PAGE TITLE SECTION
+   ================================================================ */
+.mat-page-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 16px;
+}
+.mat-page-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.mat-page-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.mat-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-dim);
+}
+.mat-breadcrumb a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.mat-breadcrumb a:hover { text-decoration: underline; }
+
+/* ================================================================
+   STATS CHIPS (student info)
+   ================================================================ */
+.mat-chips {
+    display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.mat-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); padding: 12px 16px;
+    border-radius: var(--radius); box-shadow: var(--card-shadow);
+    flex: 1; min-width: 200px;
+    transition: box-shadow 0.2s;
+}
+.mat-chip:hover { box-shadow: var(--card-shadow-hover); }
+.mat-chip-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.mat-chip-icon svg { width: 18px; height: 18px; }
+.mat-chip-icon.ci-user { background: var(--accent-bg); color: var(--accent); }
+.mat-chip-icon.ci-book { background: var(--blue-light); color: var(--blue); }
+.mat-chip-icon.ci-star { background: var(--purple-bg); color: var(--purple); }
+.mat-chip-icon.ci-clock { background: var(--green-bg); color: var(--green); }
+.mat-chip-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.mat-chip-value { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.mat-chip-value .highlight { color: var(--accent); }
+.mat-chip-value .green { color: var(--green); }
+
+/* ================================================================
+   ALERT BANNER
+   ================================================================ */
+.mat-alert {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid var(--amber);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: #92400e; line-height: 1.5;
+}
+.mat-alert-icon {
+    flex-shrink: 0; width: 28px; height: 28px;
+    background: rgba(217,119,6,0.12); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+}
+.mat-alert-icon svg { width: 14px; height: 14px; color: var(--amber); }
+.mat-alert b { color: #78350f; }
+.mat-alert-close {
+    margin-left: auto; flex-shrink: 0;
+    background: none; border: none; color: #d4a574;
+    cursor: pointer; padding: 4px; border-radius: 6px; font-size: 14px;
+}
+.mat-alert-close:hover { color: #92400e; }
+
+/* ================================================================
+   ACTION BAR
+   ================================================================ */
+.mat-actions {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.mat-action-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    text-decoration: none; cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--card); color: var(--text-secondary);
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s;
+}
+.mat-action-btn:hover {
+    border-color: var(--accent); color: var(--accent);
+    box-shadow: var(--card-shadow-hover); transform: translateY(-1px);
+}
+.mat-action-btn svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.6; }
+.mat-action-btn:hover svg { opacity: 1; }
+.mat-action-confirm {
+    background: var(--green); border-color: var(--green);
+    color: #fff; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+    margin-left: auto;
+}
+.mat-action-confirm svg { opacity: 1; }
+.mat-action-confirm:hover {
+    background: #15803d; border-color: #15803d; color: #fff;
+    box-shadow: 0 4px 16px rgba(22,163,74,0.4); transform: translateY(-1px);
+}
+.mat-action-cancel {
+    background: var(--card); border-color: rgba(220,38,38,0.2);
+    color: var(--red); font-weight: 600;
+}
+.mat-action-cancel:hover {
+    background: var(--red-bg); border-color: var(--red);
+    box-shadow: 0 4px 16px rgba(220,38,38,0.1); transform: translateY(-1px);
+}
+
+/* ================================================================
+   GRID: Turmas + Schedule
+   ================================================================ */
+.mat-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* ================================================================
+   CARD / PANEL
+   ================================================================ */
+.mat-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+.mat-card:hover { box-shadow: var(--card-shadow-hover); }
+.mat-card-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-light);
+}
+.mat-card-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent-bg);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mat-card-icon svg { width: 14px; height: 14px; color: var(--accent); }
+.mat-card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.mat-card-badge {
+    margin-left: auto;
+    padding: 3px 10px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+    background: var(--accent-bg); color: var(--accent);
+}
+.mat-card-body { max-height: 450px; overflow-y: auto; }
+.mat-card-body::-webkit-scrollbar { width: 4px; }
+.mat-card-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 2px; }
+
+/* ================================================================
+   TURMA ROW (card-based list)
+   ================================================================ */
+.mat-turma {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.15s;
+}
+.mat-turma:last-child { border-bottom: none; }
+.mat-turma:hover { background: #f8fafc; }
+
+/* Color-coded badges matching discipline identity */
+.mat-badge {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; flex-shrink: 0;
+    letter-spacing: -0.3px;
+}
+.mat-badge.c1 { background: var(--accent-bg); color: var(--accent); }
+.mat-badge.c2 { background: var(--purple-bg); color: var(--purple); }
+.mat-badge.c3 { background: var(--pink-bg); color: var(--pink); }
+.mat-badge.c4 { background: var(--green-bg); color: var(--green); }
+.mat-badge.c5 { background: var(--amber-bg); color: var(--amber); }
+
+.mat-turma-info { flex: 1; min-width: 0; }
+.mat-turma-code { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; }
+.mat-turma-name { font-size: 14px; font-weight: 600; color: var(--text); margin: 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mat-turma-prof { font-size: 12px; color: var(--text-muted); }
+
+.mat-turma-stats { display: flex; gap: 14px; flex-shrink: 0; }
+.mat-turma-stat { text-align: center; min-width: 36px; }
+.mat-turma-stat-val { font-size: 15px; font-weight: 700; color: var(--text); }
+.mat-turma-stat-val.green { color: var(--green); }
+.mat-turma-stat-lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; }
+
+.mat-turma-del {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); cursor: pointer; flex-shrink: 0;
+    transition: all 0.2s;
+}
+.mat-turma-del:hover { background: var(--red-bg); border-color: rgba(220,38,38,0.3); color: var(--red); }
+.mat-turma-del svg { width: 14px; height: 14px; }
+
+/* Total footer */
+.mat-card-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px; border-top: 1px solid var(--border-light);
+    background: #f8fafc; font-size: 12px; color: var(--text-muted);
+}
+.mat-card-footer strong { color: var(--green); font-size: 15px; font-weight: 700; }
+
+/* ================================================================
+   SCHEDULE GRID (color-coded cells)
+   ================================================================ */
+.mat-sched {
+    width: 100%; border-collapse: separate; border-spacing: 3px;
+    font-size: 10px; padding: 10px;
+}
+.mat-sched thead th {
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 8px 2px; text-align: center;
+}
+.mat-sched thead th:first-child { width: 34px; }
+.mat-sched td {
+    text-align: center; padding: 5px 2px;
+    border-radius: 6px; height: 26px;
+    font-size: 10px; color: var(--text-dim);
+}
+.mat-sched td:first-child {
+    font-weight: 700; color: var(--text-muted); font-size: 10px;
+    background: #f8fafc; border-radius: 6px;
+}
+.mat-sched td.e { color: #d1d5db; } /* empty */
+/* Color-coded discipline slots */
+.mat-sched td.s1 { background: var(--accent-bg); color: var(--accent); font-weight: 800; border: 1px solid rgba(8,145,178,0.12); cursor: help; }
+.mat-sched td.s2 { background: var(--purple-bg); color: var(--purple); font-weight: 800; border: 1px solid rgba(124,58,237,0.1); cursor: help; }
+.mat-sched td.s3 { background: var(--pink-bg);   color: var(--pink);   font-weight: 800; border: 1px solid rgba(219,39,119,0.1); cursor: help; }
+.mat-sched td.s4 { background: var(--green-bg);  color: var(--green);  font-weight: 800; border: 1px solid rgba(22,163,74,0.1); cursor: help; }
+.mat-sched td.s5 { background: var(--amber-bg);  color: var(--amber);  font-weight: 800; border: 1px solid rgba(217,119,6,0.1); cursor: help; }
+.mat-sched tr.sep td { height: 3px; padding: 0; background: var(--border-light); border-radius: 0; }
+
+/* Legend below schedule */
+.mat-legend {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 10px 14px; border-top: 1px solid var(--border-light);
+}
+.mat-legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 9px; font-weight: 600; color: var(--text-muted);
+}
+.mat-legend-dot {
+    width: 8px; height: 8px; border-radius: 3px;
+}
+.mat-legend-dot.ld1 { background: var(--accent); }
+.mat-legend-dot.ld2 { background: var(--purple); }
+.mat-legend-dot.ld3 { background: var(--pink); }
+.mat-legend-dot.ld4 { background: var(--green); }
+.mat-legend-dot.ld5 { background: var(--amber); }
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.mat-footer {
+    border-top: 1px solid var(--border);
+    background: #f8fafc;
+    color: var(--text-dim); text-align: center;
+    padding: 10px; font-size: 10px; flex-shrink: 0;
+}
+.mat-footer a { color: var(--text-muted); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="sr-layout">
+
+<!-- ============================================================
+     SIDEBAR (exact dashboard copy)
+     ============================================================ -->
+<aside class="sr-sidebar">
+    <div class="sr-sidebar-header">
+        <div class="sr-logo">U</div>
+        <div>
+            <div class="sr-header-title">Portal do Discente</div>
+            <div class="sr-header-sub">SIGAA — UFJ</div>
+        </div>
+    </div>
+    <div class="sr-sidebar-content">
+        <div class="sr-sidebar-label">Menu Principal</div>
+        <nav class="sr-menu">
+            <a class="sr-menu-item" href="/sigaa/verPortalDiscente.do">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Início
+            </a>
+            <div class="sr-menu-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                Ensino
+                <div class="sr-submenu">
+                    <a class="sr-submenu-item" href="#">📊 Minhas Notas</a>
+                    <a class="sr-submenu-item" href="#">Realizar Matrícula</a>
+                    <a class="sr-submenu-item" href="#">Acréscimo de Disciplinas</a>
+                    <a class="sr-submenu-item" href="#">Cancelamento de Disciplina</a>
+                    <a class="sr-submenu-item" href="#">Turmas Solicitadas</a>
+                    <a class="sr-submenu-item" href="#">Consultar Turma</a>
+                    <a class="sr-submenu-item" href="#">Calendário Acadêmico</a>
+                </div>
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+                Pesquisa
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                Extensão
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                Monitoria
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/></svg>
+                Bolsas
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                Estágio
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Atividades
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                Ambientes
+            </div>
+            <div class="sr-menu-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                Outros
+            </div>
+        </nav>
+        <div class="sr-sidebar-sep"></div>
+        <div class="sr-sidebar-label">Atalhos</div>
+        <nav class="sr-menu">
+            <a class="sr-menu-item" href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Caixa Postal
+            </a>
+            <a class="sr-menu-item" href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+                Abrir Chamado
+            </a>
+        </nav>
+    </div>
+    <div class="sr-sidebar-footer">
+        <a href="#" class="sr-logout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+        </a>
+    </div>
+</aside>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main class="sr-main">
+    <div class="sr-content">
+    <div class="sr-container">
+
+            <!-- Title + breadcrumb -->
+            <div class="mat-page-top">
+                <div>
+                    <div class="mat-page-title">Turmas Selecionadas</div>
+                    <div class="mat-page-sub">Revise suas turmas e confirme a solicitação de matrícula</div>
+                </div>
+                <div class="mat-breadcrumb">
+                    <a href="#">Portal</a> <span>›</span>
+                    <a href="#">Matrícula 2026.1</a> <span>›</span>
+                    Turmas Selecionadas
+                </div>
+            </div>
+
+            <!-- Alert -->
+            <div class="mat-alert">
+                <div class="mat-alert-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div><b>Para efetivar sua solicitação é necessário pressionar "Confirmar Solicitação".</b> Após a confirmação será possível imprimir o comprovante.</div>
+                <button class="mat-alert-close" onclick="this.parentElement.style.display='none'">✕</button>
+            </div>
+
+            <!-- Stat chips -->
+            <div class="mat-chips">
+                <div class="mat-chip">
+                    <div class="mat-chip-icon ci-user">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <div class="mat-chip-label">Discente</div>
+                        <div class="mat-chip-value">Ana Clara M. Cardoso</div>
+                    </div>
+                </div>
+                <div class="mat-chip">
+                    <div class="mat-chip-icon ci-book">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                    </div>
+                    <div>
+                        <div class="mat-chip-label">Curso</div>
+                        <div class="mat-chip-value">Zootecnia — Bacharelado</div>
+                    </div>
+                </div>
+                <div class="mat-chip">
+                    <div class="mat-chip-icon ci-star">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <div>
+                        <div class="mat-chip-label">Prioridade</div>
+                        <div class="mat-chip-value"><span class="highlight">51.1</span></div>
+                    </div>
+                </div>
+                <div class="mat-chip">
+                    <div class="mat-chip-icon ci-clock">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                    </div>
+                    <div>
+                        <div class="mat-chip-label">Total</div>
+                        <div class="mat-chip-value"><span class="green">304 horas</span> · 5 turmas</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mat-actions">
+                <a class="mat-action-btn" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    Ajuda
+                </a>
+                <a class="mat-action-btn" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                    Turmas da Matriz
+                </a>
+                <a class="mat-action-btn" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5"/></svg>
+                    Equivalentes
+                </a>
+                <a class="mat-action-btn" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    Buscar NL
+                </a>
+                <a class="mat-action-btn mat-action-confirm" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                    Confirmar Solicitação
+                </a>
+                <a class="mat-action-btn mat-action-cancel" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    Sair
+                </a>
+            </div>
+
+            <!-- Two-column: turmas + schedule -->
+            <div class="mat-grid">
+
+                <!-- Turmas -->
+                <div class="mat-card">
+                    <div class="mat-card-header">
+                        <div class="mat-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </div>
+                        <div class="mat-card-title">Turmas Selecionadas</div>
+                        <span class="mat-card-badge">5 turmas</span>
+                    </div>
+                    <div class="mat-card-body">
+                        <div class="mat-turma">
+                            <div class="mat-badge c1">A</div>
+                            <div class="mat-turma-info">
+                                <div class="mat-turma-code">IBI0239 — Turma A</div>
+                                <div class="mat-turma-name">Fisiologia Animal I</div>
+                                <div class="mat-turma-prof">Monica R. Ferreira Machado</div>
+                            </div>
+                            <div class="mat-turma-stats">
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">64</div><div class="mat-turma-stat-lbl">CH</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">21</div><div class="mat-turma-stat-lbl">Pos</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val green">35</div><div class="mat-turma-stat-lbl">Vagas</div></div>
+                            </div>
+                            <button class="mat-turma-del" title="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                        <div class="mat-turma">
+                            <div class="mat-badge c2">C</div>
+                            <div class="mat-turma-info">
+                                <div class="mat-turma-code">ICA0489 — Turma C</div>
+                                <div class="mat-turma-name">Administração Rural</div>
+                                <div class="mat-turma-prof">Valdinei Junio Brito Vilela</div>
+                            </div>
+                            <div class="mat-turma-stats">
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">48</div><div class="mat-turma-stat-lbl">CH</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">7</div><div class="mat-turma-stat-lbl">Pos</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val green">35</div><div class="mat-turma-stat-lbl">Vagas</div></div>
+                            </div>
+                            <button class="mat-turma-del" title="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                        <div class="mat-turma">
+                            <div class="mat-badge c3">A</div>
+                            <div class="mat-turma-info">
+                                <div class="mat-turma-code">ICA0577 — Turma A</div>
+                                <div class="mat-turma-name">Apicultura</div>
+                                <div class="mat-turma-prof">A Definir Docente</div>
+                            </div>
+                            <div class="mat-turma-stats">
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">64</div><div class="mat-turma-stat-lbl">CH</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">8</div><div class="mat-turma-stat-lbl">Pos</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val green">30</div><div class="mat-turma-stat-lbl">Vagas</div></div>
+                            </div>
+                            <button class="mat-turma-del" title="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                        <div class="mat-turma">
+                            <div class="mat-badge c4">A</div>
+                            <div class="mat-turma-info">
+                                <div class="mat-turma-code">ICA0589 — Turma A</div>
+                                <div class="mat-turma-name">Nutrição de Não Ruminantes</div>
+                                <div class="mat-turma-prof">Karina L. A. Martinez Lopes · Igo G. Guimarães</div>
+                            </div>
+                            <div class="mat-turma-stats">
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">64</div><div class="mat-turma-stat-lbl">CH</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">13</div><div class="mat-turma-stat-lbl">Pos</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val green">30</div><div class="mat-turma-stat-lbl">Vagas</div></div>
+                            </div>
+                            <button class="mat-turma-del" title="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                        <div class="mat-turma">
+                            <div class="mat-badge c5">A</div>
+                            <div class="mat-turma-info">
+                                <div class="mat-turma-code">ICA0617 — Turma A</div>
+                                <div class="mat-turma-name">Tecnologia de Carne, Couro e Ovos</div>
+                                <div class="mat-turma-prof">Marcia Dias · Karina L. A. Martinez Lopes</div>
+                            </div>
+                            <div class="mat-turma-stats">
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">64</div><div class="mat-turma-stat-lbl">CH</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val">13</div><div class="mat-turma-stat-lbl">Pos</div></div>
+                                <div class="mat-turma-stat"><div class="mat-turma-stat-val green">30</div><div class="mat-turma-stat-lbl">Vagas</div></div>
+                            </div>
+                            <button class="mat-turma-del" title="Remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="mat-card-footer">
+                        <span>5 turmas selecionadas</span>
+                        <strong>304 horas</strong>
+                    </div>
+                </div>
+
+                <!-- Schedule -->
+                <div class="mat-card">
+                    <div class="mat-card-header">
+                        <div class="mat-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="mat-card-title">Grade de Horários</div>
+                    </div>
+                    <div class="mat-card-body" style="max-height:none">
+                        <table class="mat-sched">
+                            <thead><tr><th></th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sab</th></tr></thead>
+                            <tbody>
+                                <tr><td>M1</td><td class="s5" title="Tec. Carne">617</td><td class="e">—</td><td class="s3" title="Apicultura">577</td><td class="s5" title="Tec. Carne">617</td><td class="s3" title="Apicultura">577</td><td class="e">—</td></tr>
+                                <tr><td>M2</td><td class="s5" title="Tec. Carne">617</td><td class="e">—</td><td class="s3" title="Apicultura">577</td><td class="s5" title="Tec. Carne">617</td><td class="s3" title="Apicultura">577</td><td class="e">—</td></tr>
+                                <tr><td>M3</td><td class="e">—</td><td class="s4" title="Nutr. Não Rum.">589</td><td class="e">—</td><td class="e">—</td><td class="s2" title="Adm. Rural">489</td><td class="e">—</td></tr>
+                                <tr><td>M4</td><td class="e">—</td><td class="s4" title="Nutr. Não Rum.">589</td><td class="e">—</td><td class="e">—</td><td class="s2" title="Adm. Rural">489</td><td class="e">—</td></tr>
+                                <tr><td>M5</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="s2" title="Adm. Rural">489</td><td class="e">—</td></tr>
+                                <tr class="sep"><td colspan="7"></td></tr>
+                                <tr><td>T1</td><td class="e">—</td><td class="s4" title="Nutr. Não Rum.">589</td><td class="e">—</td><td class="s1" title="Fisiologia">239</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>T2</td><td class="e">—</td><td class="s4" title="Nutr. Não Rum.">589</td><td class="e">—</td><td class="s1" title="Fisiologia">239</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>T3</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="s1" title="Fisiologia">239</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>T4</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="s1" title="Fisiologia">239</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>T5</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>T6</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr class="sep"><td colspan="7"></td></tr>
+                                <tr><td>N1</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>N2</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>N3</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                                <tr><td>N4</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td><td class="e">—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mat-legend">
+                        <div class="mat-legend-item"><div class="mat-legend-dot ld1"></div>IBI0239</div>
+                        <div class="mat-legend-item"><div class="mat-legend-dot ld2"></div>ICA0489</div>
+                        <div class="mat-legend-item"><div class="mat-legend-dot ld3"></div>ICA0577</div>
+                        <div class="mat-legend-item"><div class="mat-legend-dot ld4"></div>ICA0589</div>
+                        <div class="mat-legend-item"><div class="mat-legend-dot ld5"></div>ICA0617</div>
+                    </div>
+                </div><!-- /mat-card schedule -->
+
+            </div><!-- /mat-grid -->
+
+        </div><!-- /sr-container -->
+    </div><!-- /sr-content -->
+
+</main>
+</div>
+
+</body>
+</html>

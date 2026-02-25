@@ -1607,348 +1607,1267 @@
     // BUILD INNER PAGES (Páginas internas SIGAA)
     // ========================================
     function buildInner() {
-        // ---- Inject persistent sidebar (same look as dashboard) ----
-        (function injectInnerSidebar() {
-            if (document.getElementById('sg-inner-nav')) return;
-            function decodeEnt(s) {
-                return s.replace(/&#(\d+);/g, function (_, c) { return String.fromCharCode(+c); })
-                    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-            }
-            function sgNav(displayText) {
-                var menuKey = Object.keys(window).find(function (k) {
-                    return /form_menu_discente.*_menu$/.test(k) && Array.isArray(window[k]);
-                });
-                function searchMenu(arr) {
-                    if (!Array.isArray(arr)) return null;
-                    for (var i = 0; i < arr.length; i++) {
-                        var item = arr[i];
-                        if (!Array.isArray(item)) continue;
-                        var raw = item[1] ? String(item[1]).replace(/<[^>]*>/g, '').trim() : '';
-                        var text = decodeEnt(raw);
-                        if (text === displayText && typeof item[2] === 'string' && item[2].indexOf(':A]') !== -1)
-                            return item[2];
-                        for (var j = 5; j < item.length; j++) {
-                            var f = searchMenu(item[j]);
-                            if (f) return f;
-                        }
+        // Auto-skip matrícula instructions page
+        var autoSkipBtn = document.getElementById('form:btnIniciarSolicit');
+        if (autoSkipBtn) {
+            setTimeout(function () { autoSkipBtn.click(); }, 1000);
+        }
+        // ---- Navigation helpers ----
+        function decodeEnt(s) {
+            return s.replace(/&#(\d+);/g, function (_, c) { return String.fromCharCode(+c); })
+                .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        }
+        function sgNav(displayText) {
+            var menuKey = Object.keys(window).find(function (k) {
+                return /form_menu_discente.*_menu$/.test(k) && Array.isArray(window[k]);
+            });
+            function searchMenu(arr) {
+                if (!Array.isArray(arr)) return null;
+                for (var i = 0; i < arr.length; i++) {
+                    var item = arr[i];
+                    if (!Array.isArray(item)) continue;
+                    var raw = item[1] ? String(item[1]).replace(/<[^>]*>/g, '').trim() : '';
+                    var text = decodeEnt(raw);
+                    if (text === displayText && typeof item[2] === 'string' && item[2].indexOf(':A]') !== -1)
+                        return item[2];
+                    for (var j = 5; j < item.length; j++) {
+                        var f = searchMenu(item[j]);
+                        if (f) return f;
                     }
-                    return null;
                 }
-                var action = menuKey ? searchMenu(window[menuKey]) : null;
-                var form = document.querySelector('form[id$="form_menu_discente"]') ||
-                    document.querySelector('form[id*="form_menu_discente"]');
-                if (action && form) {
-                    var inp = form.querySelector('input[name="jscook_action"]');
-                    if (!inp) {
-                        inp = document.createElement('input');
-                        inp.type = 'hidden'; inp.name = 'jscook_action'; form.appendChild(inp);
-                    }
-                    inp.value = action; form.submit();
-                } else {
-                    var all = Array.from(document.querySelectorAll('a'));
-                    var t = all.find(function (a) { return a.textContent.trim() === displayText; });
-                    if (t) t.click();
-                }
+                return null;
             }
+            var action = menuKey ? searchMenu(window[menuKey]) : null;
+            var form = document.querySelector('form[id$="form_menu_discente"]') ||
+                document.querySelector('form[id*="form_menu_discente"]');
+            if (action && form) {
+                var inp = form.querySelector('input[name="jscook_action"]');
+                if (!inp) {
+                    inp = document.createElement('input');
+                    inp.type = 'hidden'; inp.name = 'jscook_action'; form.appendChild(inp);
+                }
+                inp.value = action; form.submit();
+            } else {
+                var all = Array.from(document.querySelectorAll('a'));
+                var t = all.find(function (a) { return a.textContent.trim() === displayText; });
+                if (t) t.click();
+            }
+        }
 
-            var nav = document.createElement('div');
+        // ---- Inject dashboard-style sidebar ----
+        if (!document.getElementById('sg-inner-nav')) {
+            var nav = document.createElement('aside');
             nav.id = 'sg-inner-nav';
-            nav.style.cssText = 'position:fixed;top:0;left:0;width:220px;height:100vh;z-index:999999;' +
-                'background:linear-gradient(180deg,#0d2254 0%,#17428c 100%);' +
-                'font-family:Plus Jakarta Sans,system-ui,sans-serif;overflow-y:auto;' +
-                'box-shadow:4px 0 24px rgba(0,0,0,0.2);';
+            nav.className = 'sr-sidebar';
+            nav.innerHTML = `
+<div class="sr-sidebar-header">
+    <div class="sr-logo">U</div>
+    <div><div class="sr-header-title">Portal do Discente</div><div class="sr-header-sub">SIGAA - UFJ</div></div>
+</div>
+<div class="sr-sidebar-content">
+    <div class="sr-sidebar-label">Menu Principal</div>
+    <nav class="sr-menu">
+        <a class="sr-menu-item" href="/sigaa/verPortalDiscente.do">${I.layout} Início</a>
+        <div class="sr-menu-item active" data-menu="ensino">${I.book} Ensino
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" data-action="matriculaGraduacao.telaInstrucoes">Realizar Matrícula</a>
+                <a class="sr-submenu-item" data-action="matriculaGraduacao.iniciarSolicitacaoAcrescimo">Acréscimo de Disciplinas</a>
+                <a class="sr-submenu-item" data-action="matriculaGraduacao.iniciarSolicitacaoCancelamento">Cancelamento de Disciplina</a>
+                <a class="sr-submenu-item" data-action="matriculaGraduacao.consultarTurmasSolicitadas">Turmas Solicitadas</a>
+                <a class="sr-submenu-item" data-sg="Minhas Notas">📊 Minhas Notas</a>
+                <a class="sr-submenu-item" data-sg="Consultar Histórico">Consultar Histórico</a>
+                <a class="sr-submenu-item" data-sg="Comprovante de Matrícula">Comprovante</a>
+                <a class="sr-submenu-item" data-sg="Emitir Extrato Acadêmico">Extrato Acadêmico</a>
+                <a class="sr-submenu-item" href="/sigaa/graduacao/turma/busca.jsf">Consultar Turma</a>
+                <a class="sr-submenu-item" href="/sigaa/graduacao/calendario_academico/busca.jsf">Calendário Acadêmico</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="pesquisa">${I.flask} Pesquisa
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/pesquisa/projetoPesquisa/busca.jsf">Consultar Projetos</a>
+                <a class="sr-submenu-item" href="/sigaa/pesquisa/projetoPesquisa/meusProjetos.jsf">Meus Projetos</a>
+                <a class="sr-submenu-item" href="/sigaa/pesquisa/relatorioIniciacaoCientifica/listar.jsf">Relatórios IC</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="extensao">${I.puzzle} Extensão
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/extensao/projetoExtensao/busca.jsf">Consultar Ações</a>
+                <a class="sr-submenu-item" href="/sigaa/extensao/projetoExtensao/minhasAcoes.jsf">Minhas Ações</a>
+                <a class="sr-submenu-item" href="/sigaa/extensao/projetoExtensao/submeterProposta.jsf">Submeter Proposta</a>
+                <a class="sr-submenu-item" href="/sigaa/extensao/projetoExtensao/listarPropostas.jsf">Minhas Propostas</a>
+                <a class="sr-submenu-item" href="/sigaa/extensao/certificado/listar.jsf">Certificados</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="monitoria">${I.users} Monitoria
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/monitoria/projetoMonitoria/busca.jsf">Projetos</a>
+                <a class="sr-submenu-item" href="/sigaa/monitoria/projetoMonitoria/meusProjetos.jsf">Meus Projetos</a>
+                <a class="sr-submenu-item" href="/sigaa/monitoria/relatorioMonitoria/listar.jsf">Relatórios</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="bolsas">${I.award} Bolsas
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/bolsas/oportunidadeBolsa/busca.jsf">Oportunidades</a>
+                <a class="sr-submenu-item" href="/sigaa/bolsas/minhasBolsas.jsf">Minhas Bolsas</a>
+                <a class="sr-submenu-item" href="/sigaa/bolsas/solicitacaoBolsaAuxilio/listar.jsf">Solicitar</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="atividades">${I.calendar} Atividades
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/atividadesComplementares/solicitacao/enviar.jsf">Enviar Solicitação</a>
+                <a class="sr-submenu-item" href="/sigaa/atividadesComplementares/solicitacao/listar.jsf">Minhas Solicitações</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="estagio">${I.briefcase} Estágio
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/estagio/oportunidadeEstagio/busca.jsf">Oportunidades</a>
+                <a class="sr-submenu-item" href="/sigaa/estagio/meusEstagios.jsf">Meus Estágios</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="ambientes">${I.globe} Ambientes
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/portais/discente/turmas.jsf">Turmas Virtuais</a>
+                <a class="sr-submenu-item" href="/sigaa/portais/discente/comunidades.jsf">Comunidades</a>
+            </div>
+        </div>
+        <div class="sr-menu-item" data-menu="outros">${I.settings} Outros
+            <div class="sr-submenu">
+                <a class="sr-submenu-item" href="/sigaa/comum/usuario/alterarSenha.jsf">Alterar Senha</a>
+                <a class="sr-submenu-item" href="/sigaa/comum/usuario/meusDados.jsf">Meus Dados</a>
+            </div>
+        </div>
+    </nav>
+    <div class="sr-sidebar-sep"></div>
+    <div class="sr-sidebar-label">Atalhos</div>
+    <nav class="sr-menu">
+        <a class="sr-menu-item" href="/sigaa/abrirCaixaPostal.jsf?sistema=2">${I.mail} Caixa Postal</a>
+        <a class="sr-menu-item" href="https://atendimento.ufj.edu.br/" target="_blank">${I.headphones} Abrir Chamado</a>
+    </nav>
+</div>
+<div class="sr-sidebar-footer">
+    <a href="/sigaa/logar.do?dispatch=logOff" class="sr-logout">${I.logout} Sair</a>
+</div>`;
 
-            var items = [
-                ['Realizar Matr\u00EDcula', '\uD83D\uDCCB Realizar Matr\u00EDcula'],
-                ['Minhas Notas', '\uD83D\uDCCA Minhas Notas'],
-                ['Consultar Hist\u00F3rico', '\uD83D\uDCDA Hist\u00F3rico'],
-                ['Comprovante de Matr\u00EDcula', '\uD83C\uDF93 Comprovante'],
-                ['Emitir Extrato Acad\u00EAmico', '\uD83D\uDCC4 Extrato Acad\u00EAmico'],
-                ['Ver Comprovante de Solicita\u00E7\u00E3o de Matr\u00EDcula', '\u2705 Comprovante Solicit.'],
-                ['SECAO:Outros', null],
-                ['Gerenciar Est\u00E1gios', '\uD83D\uDCBC Est\u00E1gio'],
-                ['Aderir ao Cadastro Estudantil', '\uD83D\uDCB0 Bolsas'],
-            ];
+            // Click handlers for data-sg items (SIGAA menu navigation)
+            nav.querySelectorAll('[data-sg]').forEach(function (a) {
+                a.addEventListener('click', function (e) { e.preventDefault(); sgNav(a.dataset.sg); });
+            });
 
-            var html = '<div style="padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">' +
-                '<div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;">U</div>' +
-                '<div><div style="color:#fff;font-weight:700;font-size:13px;">Portal do Discente</div>' +
-                '<div style="color:rgba(255,255,255,0.5);font-size:10px;">SIGAA \u2014 UFJ</div></div></div>' +
-                '<div style="padding:12px 8px 6px;">' +
-                '<a href="/sigaa/verPortalDiscente.do" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.9);text-decoration:none;font-size:12px;font-weight:600;background:rgba(255,255,255,0.1);margin-bottom:8px;">' +
-                '\u2190 Voltar ao In\u00EDcio</a>' +
-                '<div style="color:rgba(255,255,255,0.35);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:8px 12px 4px;">Ensino</div>';
-
-            for (var i = 0; i < items.length; i++) {
-                var key = items[i][0]; var label = items[i][1];
-                if (key.indexOf('SECAO:') === 0) {
-                    html += '<div style="color:rgba(255,255,255,0.35);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:12px 12px 4px;">' + key.replace('SECAO:', '') + '</div>';
-                } else {
-                    html += '<a class="sg-il" data-sg="' + key + '" href="#" style="display:flex;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:12px;">' + label + '</a>';
-                }
-            }
-            html += '</div>';
-            nav.innerHTML = html;
-
-            nav.querySelectorAll('.sg-il').forEach(function (a) {
-                a.addEventListener('mouseenter', function () { a.style.background = 'rgba(255,255,255,0.12)'; });
-                a.addEventListener('mouseleave', function () { a.style.background = 'none'; });
-                a.addEventListener('click', function (e) { e.preventDefault(); sgNav(a.getAttribute('data-sg')); });
+            // Click handlers for data-action items (form-based SIGAA navigation)
+            nav.querySelectorAll('[data-action]').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var action = a.dataset.action;
+                    var parts = action.split('.');
+                    // Try direct URL navigation for matrícula actions
+                    if (action === 'matriculaGraduacao.telaInstrucoes') {
+                        window.location.href = '/sigaa/graduacao/matricula/matriculaGraduacao.jsf?dispatch=telaInstrucoes';
+                    } else if (action === 'matriculaGraduacao.iniciarSolicitacaoAcrescimo') {
+                        window.location.href = '/sigaa/graduacao/matricula/matriculaGraduacao.jsf?dispatch=iniciarSolicitacaoAcrescimo';
+                    } else if (action === 'matriculaGraduacao.iniciarSolicitacaoCancelamento') {
+                        window.location.href = '/sigaa/graduacao/matricula/matriculaGraduacao.jsf?dispatch=iniciarSolicitacaoCancelamento';
+                    } else if (action === 'matriculaGraduacao.consultarTurmasSolicitadas') {
+                        window.location.href = '/sigaa/graduacao/matricula/matriculaGraduacao.jsf?dispatch=consultarTurmasSolicitadas';
+                    } else {
+                        // Generic: try sgNav with the display text as fallback
+                        sgNav(a.textContent.trim());
+                    }
+                });
             });
 
             document.body.appendChild(nav);
+        }
 
-            var ps = document.createElement('style');
-            ps.textContent = '#container{margin-left:220px!important;}';
-            document.head.appendChild(ps);
-        })();
-
-        // ---- Hide original SIGAA header and inject custom top bar ----
-        (function injectInnerTopBar() {
-            if (document.getElementById('sg-inner-topbar')) return;
-
-            var userName = '', userUnit = '', semestre = '', breadcrumb = '', noticias = '';
-            try {
-                var el;
-                el = document.querySelector('#painel-usuario .usuario span'); if (el) userName = el.textContent.trim();
-                el = document.querySelector('#painel-usuario .periodo-atual strong'); if (el) semestre = el.textContent.trim();
-                el = document.querySelector('#conteudo h2'); if (el) breadcrumb = el.textContent.replace(/\s+/g, ' ').trim().replace(/>/g, '\u203a');
-                el = document.querySelector('#menu-usuario .caixa-postal a'); if (el) noticias = el.textContent.trim();
-            } catch (e) { }
-
-            var hideStyle = document.createElement('style');
-            hideStyle.textContent = '#cabecalho{display:none!important}#painel-usuario{display:none!important}#menu-dropdown{display:none!important}' +
-                '#container{padding-top:0!important;margin-left:220px!important;box-sizing:border-box!important}' +
-                '#rodape{background:#0d2254!important;color:rgba(255,255,255,0.5)!important;font-size:11px!important}' +
-                '#conteudo{margin:20px 24px!important;background:#fff!important;border-radius:16px!important;padding:28px!important;box-shadow:0 4px 24px rgba(23,66,140,0.1)!important;overflow-x:auto!important}' +
-                '#conteudo table{max-width:100%!important;display:block!important;overflow-x:auto!important}';
-            document.head.appendChild(hideStyle);
-
-            var topBar = document.createElement('div');
-            topBar.id = 'sg-inner-topbar';
-            topBar.style.cssText = 'position:sticky;top:0;z-index:99998;margin-left:220px;background:linear-gradient(135deg,#17428c 0%,#0f2d66 100%);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;box-shadow:0 2px 16px rgba(0,0,0,0.25);font-family:Plus Jakarta Sans,system-ui,sans-serif;';
-
-            var left = '<div style="display:flex;align-items:center;gap:12px;">' +
-                '<div style="color:#fff;font-weight:700;font-size:14px;opacity:0.85;">SIGAA \u2014 UFJ</div>' +
-                (breadcrumb ? '<div style="color:rgba(255,255,255,0.3);font-size:12px;">\u203a</div><div style="color:rgba(255,255,255,0.7);font-size:12px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + breadcrumb + '</div>' : '') +
-                '</div>';
-
-            var right = '<div style="display:flex;align-items:center;gap:16px;">' +
-                (semestre ? '<div style="background:rgba(255,255,255,0.12);padding:4px 12px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;">' + semestre + '</div>' : '') +
-                (noticias ? '<div style="color:rgba(255,255,255,0.65);font-size:11px;">' + noticias + '</div>' : '') +
-                (userName ? '<div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">' + userName[0] + '</div><div style="color:#fff;font-size:12px;font-weight:600;">' + userName.split(' ')[0] + '</div></div>' : '') +
-                '<a href="/sigaa/logar.do?dispatch=logOff" style="color:rgba(255,255,255,0.6);font-size:11px;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;">Sair</a>' +
-                '</div>';
-
-            topBar.innerHTML = left + right;
-
-            var container = document.querySelector('#container');
-            if (container && container.parentNode) {
-                container.parentNode.insertBefore(topBar, container);
-            } else {
-                document.body.insertBefore(topBar, document.body.firstChild);
-            }
-        })();
-
-        const SVG_PORTICO = `url("data:image/svg+xml,%3Csvg version='1.1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cpath fill='rgba(255,255,255,0.13)' d='M1911.7,776.9c-1.1-2.9-2-5.2-3-7.5c-44.9-103.8-107.8-191-186.9-259.3c-65.4-56.4-138.5-95.4-217.2-115.7c-34.1-8.8-62.4-16.9-89.2-32.7c-3-1.8-6.4-3.2-9.7-4.6c-1.2-0.5-2.4-1-3.6-1.6c-91.9-40.6-189.7-59.2-290.6-55.2c-39,1.5-72.4,5.2-102.1,11.1c-55.7,11.1-112.1,23.8-166.6,36.1c-22.6,5.1-46,10.3-69,15.4c-2.5,0.6-5,1-7.7,1.4c-1.3,0.2-2.7,0.5-4.1,0.7l-1.8,0.3v-1.8c0-2.1,0-4.1,0-6.1c0-4.4-0.1-8.6,0.1-12.7c0.2-3.6-0.9-4.8-4.8-5.7c-33.1-7.5-66.8-15.2-99.3-22.7c-23.5-5.4-46.9-10.7-70.4-16.1c-1.7-0.4-3.6-0.3-5.1,0.2c-16.4,5.3-32.8,10.7-49.3,16.1c-23.2,7.6-47.3,15.5-71,23.1c-4.9,1.6-6.4,3.6-6.3,8.5c0.3,13.2,0.2,26.5,0.2,39.5c0,4,0,8.1,0,12.1c0,1.9-0.1,3.8-0.3,5.8c-0.1,1-0.1,1.9-0.2,3l-0.1,1.6l-1.6-0.2c-3.6-0.4-7-0.8-10.4-1.2c-7.9-0.9-15.4-1.8-22.9-2.1c-5.9-0.3-13.5-0.3-20,1.8c-73.1,24-138.9,45.7-204.4,68c-68.3,23.4-120.2,67.7-154.1,131.9C18.7,649.5,7.8,694.7,7,746.6c0,3,0.4,4.8,1.4,5.8c1,1,2.8,1.4,5.5,1.3c14.1-0.5,28-0.3,42.3-0.1c2.3,0,3.7-0.3,4.4-1c0.7-0.7,1-2.3,0.9-4.8c-0.1-3.1-0.3-6.3-0.4-9.4c-0.6-13.1-1.3-26.7,0.1-39.8C70.3,609.4,117,545.3,200,508.3c3.1-1.4,7.2-2,11.2-1.6c23.1,2.1,45.7,4.3,70.8,6.9c13.3,1.3,26.4,2.7,40.3,4.2c6.3,0.7,12.6,1.3,19.2,2l3.8,0.4l-3.1,2.3c-0.9,0.7-1.7,1.3-2.3,1.7c-1.1,0.8-1.9,1.4-2.7,2c-25.4,15.9-47.6,35.2-66,57.3c-38.1,45.9-59.7,99.7-66,164.6c-0.2,2.3,0,3.8,0.7,4.6c0.7,0.8,2.2,1.1,4.6,1.1c16.2-0.3,31.1-0.3,45.4,0c2.6,0.1,4.3-0.3,5-1.1c0.8-0.9,1.1-2.6,0.9-5.5c-2-33.4,1.5-62.9,10.7-89.9c12-35.2,29.4-64.5,51.6-86.8c23.5-23.7,53.1-40.5,88.1-49.8c8.8-2.4,17.8-3.5,27.3-4.7c4.3-0.6,8.8-1.1,13.2-1.8l1.7-0.3v65.8c0,63.1,0,128.4-0.1,192.6c0,3.6,0.5,5.6,1.6,6.7c1.1,1.1,3.1,1.6,6.4,1.6h0.1c48.3-0.1,96.6-0.2,144.5-0.2c49,0,97.7,0.1,145.6,0.2c3.4,0,5.4-0.5,6.5-1.5c1.1-1.1,1.5-3.1,1.5-6.7c-0.2-65.5-0.2-132.1-0.1-196.5v-63.4l50.7-8.5c36.7-6.2,73.2-12.3,109.7-18.5c25.1-4.2,50.2-8.4,75.3-12.7c61.4-10.3,124.9-20.9,187.2-32c60.9-10.8,110.6-12.5,156.6-5.2c3.5,0.5,8.2,2.2,10.9,5.3c3.2,3.6,6.5,7.2,9.6,10.7c11,12.1,22.3,24.6,32,38c55.8,77.3,87.4,169.6,96.6,282l0.1,0.8c0.3,4,0.5,6.5,1.4,7.3c0.9,0.8,3.6,0.8,7.9,0.8H1913C1912.5,779,1912.1,777.9,1911.7,776.9z'/%3E%3C/svg%3E")`;
-
+        // ---- Inject CSS ----
         const style = document.createElement('style');
         style.textContent = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+html { zoom: 1.1; }
+
+/* Hide original SIGAA chrome */
+#cabecalho, #painel-usuario, #menu-dropdown { display: none !important; }
+
+/* ---- Sidebar (same as dashboard) ---- */
+.sr-sidebar {
+    position: fixed; top: 0; left: 0; z-index: 999999;
+    width: 215px; height: 100vh;
+    background: #0d2254;
+    color: rgba(255,255,255,0.7);
+    display: flex; flex-direction: column;
+    overflow: visible;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+.sr-sidebar-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sr-logo {
+    width: 36px; height: 36px; background: #17428c; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0;
+}
+.sr-header-title { color: #fff; font-size: 13px; font-weight: 600; }
+.sr-header-sub { color: rgba(255,255,255,0.5); font-size: 10px; }
+.sr-sidebar-content { padding: 14px 10px; flex: 1; overflow: visible; }
+.sr-sidebar-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: rgba(255,255,255,0.35); font-weight: 600;
+    margin-bottom: 12px; padding-left: 12px;
+}
+.sr-menu { display: flex; flex-direction: column; gap: 4px; }
+.sr-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    color: rgba(255,255,255,0.6) !important;
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left;
+    position: relative; text-decoration: none !important;
+    transition: all 0.15s ease;
+}
+.sr-menu-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9) !important; }
+.sr-menu-item.active {
+    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%) !important;
+    color: #fff !important;
+    padding: 10px 10px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(23,66,140,0.35) !important;
+    font-weight: 600 !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+.sr-menu-item.active svg { color: #fff !important; opacity: 1 !important; }
+.sr-menu-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sr-submenu {
+    display: none !important; position: fixed !important; left: 215px !important;
+    margin-top: -8px !important;
+    background: rgba(10, 31, 74, 0.97) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 14px !important; padding: 8px !important; min-width: 190px !important;
+    z-index: 999999 !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.05) !important;
+    opacity: 0; transform: translateY(8px) scale(0.96);
+    animation: menuReveal 0.2s ease-out forwards;
+}
+.sr-menu-item:hover > .sr-submenu { display: block !important; }
+@keyframes menuReveal {
+    0% { opacity: 0; transform: translateY(8px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.sr-submenu-item {
+    display: block !important; padding: 11px 14px !important; border-radius: 10px !important;
+    font-size: 13px !important; font-weight: 500 !important;
+    color: rgba(255,255,255,0.85) !important; cursor: pointer !important;
+    text-decoration: none !important; white-space: nowrap !important;
+    background: transparent !important;
+    transition: background 0.15s ease, transform 0.15s ease !important;
+}
+.sr-submenu-item:hover {
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important; transform: translateX(4px) !important;
+}
+.sr-sidebar-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 16px 0; }
+.sr-sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.08); }
+.sr-logout {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: rgba(255,255,255,0.1); border: none; border-radius: 8px;
+    padding: 10px 12px; color: #fff !important; font-size: 12px; font-weight: 500;
+    cursor: pointer; width: 100%; text-decoration: none !important;
+}
+.sr-logout:hover { background: rgba(255,255,255,0.15); }
+.sr-logout svg { width: 14px; height: 14px; }
+
+/* ---- Main content layout ---- */
 body, #container {
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
     background: #eef2f8 !important;
     margin: 0 !important;
 }
-
-/* ---- HEADER ---- */
-#cabecalho, #info-sistema {
-    background: linear-gradient(135deg, #17428c 0%, #0f2d66 100%) !important;
-    position: relative;
-    overflow: hidden;
+#container {
+    margin-left: 215px !important;
+    padding: 20px 24px !important;
+    box-sizing: border-box !important;
+    width: auto !important; max-width: none !important;
+    min-height: 100vh !important;
 }
-#cabecalho::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: ${SVG_PORTICO};
-    background-repeat: no-repeat;
-    background-size: 120%;
-    background-position: center bottom;
-    pointer-events: none;
-    z-index: 0;
-}
-#info-sistema h1, #info-sistema h3,
-#info-sistema a, #info-sistema div.dir,
-#info-sistema span {
-    color: rgba(255,255,255,0.9) !important;
-    position: relative; z-index: 1;
-}
-#info-sistema h1 { font-size: 14px !important; font-weight: 700 !important; margin: 0 !important; }
-#info-sistema h3 { font-size: 12px !important; font-weight: 400 !important; opacity: 0.8; margin: 0 !important; }
-
-/* ---- USER PANEL ---- */
-#painel-usuario {
-    background: #0d2254 !important;
-    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-    position: relative; z-index: 1;
-}
-#menu-usuario ul li a,
-#menu-usuario ul li span a {
-    color: rgba(255,255,255,0.8) !important;
-    font-size: 12px !important;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-    text-decoration: none !important;
-}
-#menu-usuario ul li a:hover { color: #fff !important; }
-#info-usuario p {
-    color: rgba(255,255,255,0.7) !important;
-    font-size: 11px !important;
-    margin: 0 !important;
-}
-#info-usuario p.usuario span {
-    color: #fff !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-}
-
-/* ---- NAV MENU (tabs) ---- */
-#menu-dropdown {
-    background: #17428c !important;
-    border-bottom: 2px solid rgba(255,255,255,0.12) !important;
-}
-#menu-dropdown .wrapper { padding: 0 16px !important; }
-
-/* ---- BREADCRUMB ---- */
-#conteudo h2, #conteudo h2 a {
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-    font-size: 13px !important;
-    color: #17428c !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
-    margin: 0 0 12px 0 !important;
-}
-
-/* ---- CONTENT AREA ---- */
 #conteudo {
     background: #fff !important;
-    margin: 20px 24px !important;
-    max-width: calc(100% - 48px) !important;
     border-radius: 16px !important;
-    padding: 28px 32px !important;
-    box-shadow: 0 4px 24px rgba(23,66,140,0.08), 0 1px 4px rgba(0,0,0,0.04) !important;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-    font-size: 13px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    padding: 24px !important;
+    margin: 0 !important;
+    overflow-x: auto !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
     color: #1a2233 !important;
-    line-height: 1.7 !important;
+    font-size: 13px !important;
+    line-height: 1.6 !important;
 }
-#conteudo .descricaoOperacao {
-    background: #f8faff !important;
-    border-left: 4px solid #17428c !important;
-    border-radius: 0 12px 12px 0 !important;
-    padding: 20px 24px !important;
-    margin-bottom: 20px !important;
+#conteudo h2 {
+    color: #17428c !important; font-weight: 700 !important;
+    font-size: 13px !important; margin: 0 0 14px 0 !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #e5eaf3 !important;
 }
-#conteudo .descricaoOperacao h4 {
-    color: #17428c !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    margin: 0 0 12px 0 !important;
+#conteudo h2 a {
+    color: #17428c !important; text-decoration: none !important; font-weight: 600 !important;
 }
-#conteudo .descricaoOperacao p {
-    color: #374151 !important;
-    margin: 8px 0 !important;
-}
-#conteudo .descricaoOperacao ul {
-    margin: 8px 0 8px 20px !important;
-    color: #374151 !important;
-}
-#conteudo .descricaoOperacao a {
-    color: #17428c !important;
-    text-decoration: underline !important;
-}
-#conteudo .descricaoOperacao .periodo {
-    color: #17428c !important;
-    background: rgba(23,66,140,0.08) !important;
-    padding: 1px 6px !important;
-    border-radius: 4px !important;
-}
+#conteudo a { color: #17428c !important; }
+#conteudo a.mat-action-confirm, #conteudo a.mat-action-confirm:visited { color: #fff !important; }
+#conteudo a.mat-action-cancel, #conteudo a.mat-action-cancel:visited { color: var(--red) !important; }
+#conteudo a:hover { text-decoration: underline !important; }
 
-/* ---- SUBMIT BUTTON ---- */
-#conteudo center input[type=submit],
-#conteudo input[type=submit],
-#conteudo input[type=button] {
-    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 12px 28px !important;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 16px rgba(23,66,140,0.3) !important;
-    transition: all 0.2s !important;
-    margin: 16px 0 !important;
-}
-#conteudo center input[type=submit]:hover,
-#conteudo input[type=submit]:hover {
-    background: linear-gradient(135deg, #1e5ab3 0%, #1a4fa0 100%) !important;
-    box-shadow: 0 6px 20px rgba(23,66,140,0.4) !important;
-}
-
-/* ---- FOOTER ---- */
+/* ---- Footer ---- */
 #rodape {
+    margin-left: 215px !important;
     background: #0d2254 !important;
     color: rgba(255,255,255,0.6) !important;
-    text-align: center !important;
-    padding: 12px !important;
-    font-size: 11px !important;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-    margin-top: 16px !important;
+    text-align: center !important; font-size: 11px !important;
 }
 #rodape p { margin: 0 !important; color: rgba(255,255,255,0.6) !important; }
 #rodape a { color: rgba(255,255,255,0.8) !important; }
 
-/* ---- TABLES ---- */
-#conteudo table {
-    border-collapse: collapse !important;
-    width: 100% !important;
-    font-size: 12px !important;
+/* ========== TABLE STYLES ========== */
+table.listagem thead td, table.listagem thead th {
+    background: linear-gradient(135deg,#17428c,#0f2d66) !important;
+    color: #fff !important; font-weight: 600 !important;
 }
-#conteudo table th {
-    background: #17428c !important;
-    color: #fff !important;
-    padding: 10px 12px !important;
-    font-weight: 600 !important;
-    text-align: left !important;
+table.listagem tr.linhaPar { background: #fff !important; }
+table.listagem tr.linhaImpar { background: #f5f8ff !important; }
+table.visualizacao th {
+    background: #17428c !important; color: #fff !important; font-weight: 600 !important;
 }
-#conteudo table td {
-    padding: 8px 12px !important;
-    border-bottom: 1px solid #e5eaf3 !important;
-    color: #374151 !important;
+table.formulario tr.titulo td {
+    background: linear-gradient(135deg,#17428c,#0f2d66) !important;
+    color: #fff !important; font-weight: 700 !important;
 }
-#conteudo table tr:hover td { background: #f0f5ff !important; }
+table.formulario td acronym {
+    color: #17428c !important; font-weight: 700 !important;
+    text-decoration: none !important; border-bottom: none !important;
+}
+
+/* ========== MATRÍCULA ACTION CARDS ========== */
+.menuMatricula td.operacao {
+    background: linear-gradient(135deg, #f0f5ff, #e8efff) !important;
+    border: 1px solid #d0daf0 !important; border-radius: 14px !important;
+    text-align: center !important; transition: all 0.2s ease !important;
+}
+.menuMatricula td.operacao:hover {
+    background: linear-gradient(135deg, #e0eaff, #d0dcff) !important;
+    border-color: #17428c !important;
+    box-shadow: 0 6px 20px rgba(23,66,140,0.15) !important;
+}
+.menuMatricula td.operacao a { color: #17428c !important; font-weight: 700 !important; text-decoration: none !important; }
+td.botoes.confirmacao {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9) !important;
+    border: 1px solid #81c784 !important; border-radius: 14px !important;
+}
+td.botoes.confirmacao a { color: #2e7d32 !important; font-weight: 700 !important; text-decoration: none !important; }
+td.botoes.nao_salvar {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2) !important;
+    border: 1px solid #ef9a9a !important; border-radius: 14px !important;
+}
+td.botoes.nao_salvar a { color: #c62828 !important; font-weight: 600 !important; text-decoration: none !important; }
+
+/* Warning banner */
+.descricaoOperacao {
+    background: linear-gradient(135deg, #fff8e1, #fff3c4) !important;
+    border-left: 4px solid #f9a825 !important; color: #5d4037 !important;
+}
+.descricaoOperacao b { color: #bf360c !important; }
+
+/* YUI Tab headers */
+.yui-navset .yui-nav, .yui-navset ul.yui-nav {
+    background: linear-gradient(135deg,#17428c,#0f2d66) !important; border: none !important;
+}
+.yui-navset .yui-nav li a, .yui-navset .yui-nav li a em {
+    color: #fff !important; background: transparent !important;
+    border: none !important; font-weight: 600 !important;
+}
+
+/* ========== MATRÍCULA REDESIGN (mat-*) ========== */
+:root {
+    --bg: #eef2f8; --card: #fff;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08);
+    --border: #e2e8f0; --border-light: #f1f5f9;
+    --text: #1a2233; --text-secondary: #475569;
+    --text-muted: #64748b; --text-dim: #94a3b8;
+    --accent: #0891b2; --accent-bg: rgba(8,145,178,0.1);
+    --blue: #17428c; --blue-light: rgba(23,66,140,0.08);
+    --green: #16a34a; --green-bg: rgba(22,163,74,0.08);
+    --red: #dc2626; --red-bg: rgba(220,38,38,0.06);
+    --amber: #d97706; --amber-bg: rgba(217,119,6,0.08);
+    --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
+    --pink: #db2777; --pink-bg: rgba(219,39,119,0.08);
+    --radius: 12px; --radius-lg: 16px;
+}
+.mat-page-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
+.mat-page-title { font-size:22px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+.mat-page-sub { font-size:13px; color:var(--text-muted); margin-top:4px; }
+.mat-breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim); }
+.mat-breadcrumb a { color:var(--accent); text-decoration:none; font-weight:500; }
+.mat-chips { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.mat-chip { display:flex; align-items:center; gap:10px; background:var(--card); padding:12px 16px; border-radius:var(--radius); box-shadow:var(--card-shadow); flex:1; min-width:200px; transition:box-shadow 0.2s; }
+.mat-chip:hover { box-shadow:var(--card-shadow-hover); }
+.mat-chip-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mat-chip-icon svg { width:18px; height:18px; }
+.mat-chip-icon.ci-user { background:var(--accent-bg); color:var(--accent); }
+.mat-chip-icon.ci-book { background:var(--blue-light); color:var(--blue); }
+.mat-chip-icon.ci-star { background:var(--purple-bg); color:var(--purple); }
+.mat-chip-icon.ci-clock { background:var(--green-bg); color:var(--green); }
+.mat-chip-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+.mat-chip-value { font-size:15px; font-weight:700; color:var(--text); margin-top:2px; }
+.mat-chip-value .highlight { color:var(--accent); }
+.mat-chip-value .green { color:var(--green); }
+.mat-alert { background:#fffbeb; border:1px solid #fde68a; border-left:4px solid var(--amber); border-radius:0 var(--radius) var(--radius) 0; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:10px; font-size:12px; color:#92400e; line-height:1.5; }
+.mat-alert-icon { flex-shrink:0; width:28px; height:28px; background:rgba(217,119,6,0.12); border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.mat-alert-icon svg { width:14px; height:14px; color:var(--amber); }
+.mat-alert b { color:#78350f; }
+.mat-alert-close { margin-left:auto; flex-shrink:0; background:none; border:none; color:#d4a574; cursor:pointer; padding:4px; border-radius:6px; font-size:14px; }
+.mat-actions { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.mat-action-btn { display:flex; align-items:center; gap:7px; padding:8px 14px; border-radius:10px; font-size:13px; font-weight:500; text-decoration:none !important; cursor:pointer; border:1px solid var(--border); background:var(--card); color:var(--text-secondary) !important; box-shadow:var(--card-shadow); transition:all 0.2s; }
+.mat-action-btn:hover { border-color:var(--accent); color:var(--accent) !important; box-shadow:var(--card-shadow-hover); transform:translateY(-1px); }
+.mat-action-btn svg { width:15px; height:15px; flex-shrink:0; opacity:0.6; }
+.mat-action-btn:hover svg { opacity:1; }
+.mat-action-btn.mat-action-confirm, a.mat-action-confirm { background:var(--green) !important; border-color:var(--green) !important; color:#fff !important; font-weight:600; box-shadow:0 2px 8px rgba(22,163,74,0.3); margin-left:auto; }
+.mat-action-btn.mat-action-confirm, a.mat-action-confirm, a.mat-action-confirm:visited, a.mat-action-confirm:link { color:#fff !important; }
+.mat-action-btn.mat-action-confirm svg, a.mat-action-confirm svg { opacity:1; color:#fff !important; }
+.mat-action-btn.mat-action-confirm:hover, a.mat-action-confirm:hover { background:#15803d !important; border-color:#15803d !important; color:#fff !important; }
+.mat-action-cancel { background:var(--card) !important; border-color:rgba(220,38,38,0.2) !important; color:var(--red) !important; font-weight:600; }
+.mat-action-cancel:hover { background:var(--red-bg) !important; border-color:var(--red) !important; }
+.mat-grid { display:grid; grid-template-columns:1fr 400px; gap:20px; align-items:start; }
+.mat-card { background:var(--card); border-radius:var(--radius-lg); box-shadow:var(--card-shadow); overflow:hidden; transition:box-shadow 0.2s; }
+.mat-card:hover { box-shadow:var(--card-shadow-hover); }
+.mat-card-header { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border-light); }
+.mat-card-icon { width:28px; height:28px; border-radius:8px; background:var(--accent-bg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mat-card-icon svg { width:14px; height:14px; color:var(--accent); }
+.mat-card-title { font-size:15px; font-weight:600; color:var(--text); }
+.mat-card-badge { margin-left:auto; padding:3px 10px; border-radius:10px; font-size:11px; font-weight:600; background:var(--accent-bg); color:var(--accent); }
+.mat-card-body { max-height:450px; overflow-y:auto; }
+.mat-turma { display:flex; align-items:center; gap:14px; padding:12px 18px; border-bottom:1px solid var(--border-light); transition:background 0.15s; }
+.mat-turma:last-child { border-bottom:none; }
+.mat-turma:nth-child(even) { background:#f8fafc; }
+.mat-turma:hover { background:#f1f5f9; }
+.mat-badge { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; flex-shrink:0; letter-spacing:-0.3px; }
+.mat-badge.c1 { background:var(--accent-bg); color:var(--accent); }
+.mat-badge.c2 { background:var(--purple-bg); color:var(--purple); }
+.mat-badge.c3 { background:var(--pink-bg); color:var(--pink); }
+.mat-badge.c4 { background:var(--green-bg); color:var(--green); }
+.mat-badge.c5 { background:var(--amber-bg); color:var(--amber); }
+.mat-turma-info { flex:1; min-width:0; }
+.mat-turma-code { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:0.5px; text-transform:uppercase; }
+.mat-turma-name { font-size:14px; font-weight:600; color:var(--text); margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mat-turma-prof { font-size:12px; color:var(--text-muted); }
+.mat-turma-stats { display:flex; gap:14px; flex-shrink:0; }
+.mat-turma-stat { text-align:center; min-width:36px; }
+.mat-turma-stat-val { font-size:15px; font-weight:700; color:var(--text); }
+.mat-turma-stat-val.green { color:var(--green); }
+.mat-turma-stat-lbl { font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.3px; font-weight:600; }
+.mat-turma-del { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; flex-shrink:0; transition:all 0.2s; }
+.mat-turma-del:hover { background:var(--red-bg); border-color:rgba(220,38,38,0.3); color:var(--red); }
+.mat-turma-del svg { width:14px; height:14px; }
+.mat-card-footer { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-top:1px solid var(--border-light); background:#f8fafc; font-size:12px; color:var(--text-muted); }
+.mat-card-footer strong { color:var(--green); font-size:15px; font-weight:700; }
+.mat-sched { width:100%; border-collapse:separate; border-spacing:2px; font-size:9px; padding:6px; }
+.mat-sched thead th { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; padding:8px 2px; text-align:center; }
+.mat-sched thead th:first-child { width:34px; }
+.mat-sched td { text-align:center; padding:5px 2px; border-radius:6px; height:26px; font-size:10px; color:var(--text-dim); }
+.mat-sched td:first-child { font-weight:700; color:var(--text-muted); font-size:10px; background:#f8fafc; border-radius:6px; }
+.mat-sched td.e { color:#d1d5db; }
+.mat-sched td.s1 { background:var(--accent-bg); color:var(--accent); font-weight:800; border:1px solid rgba(8,145,178,0.12); cursor:help; }
+.mat-sched td.s2 { background:var(--purple-bg); color:var(--purple); font-weight:800; border:1px solid rgba(124,58,237,0.1); cursor:help; }
+.mat-sched td.s3 { background:var(--pink-bg); color:var(--pink); font-weight:800; border:1px solid rgba(219,39,119,0.1); cursor:help; }
+.mat-sched td.s4 { background:var(--green-bg); color:var(--green); font-weight:800; border:1px solid rgba(22,163,74,0.1); cursor:help; }
+.mat-sched td.s5 { background:var(--amber-bg); color:var(--amber); font-weight:800; border:1px solid rgba(217,119,6,0.1); cursor:help; }
+.mat-sched tr.sep td { height:2px; padding:0; background:var(--border-light); border-radius:0; }
+.mat-legend { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px; border-top:1px solid var(--border-light); }
+.mat-legend-item { display:flex; align-items:center; gap:5px; font-size:9px; font-weight:600; color:var(--text-muted); }
+.mat-legend-dot { width:8px; height:8px; border-radius:3px; }
+.mat-legend-dot.ld1 { background:var(--accent); }
+.mat-legend-dot.ld2 { background:var(--purple); }
+.mat-legend-dot.ld3 { background:var(--pink); }
+.mat-legend-dot.ld4 { background:var(--green); }
+.mat-legend-dot.ld5 { background:var(--amber); }
 `;
         document.head.appendChild(style);
 
-        // Floating back button to the redesigned Portal
-        const backBtn = document.createElement('a');
-        backBtn.href = '/sigaa/verPortalDiscente.do';
-        backBtn.setAttribute('style',
-            'position:fixed;bottom:20px;right:20px;z-index:999999;' +
-            'background:linear-gradient(135deg,#1a4fa0 0%,#17428c 100%);' +
-            'color:#fff;font-family:Plus Jakarta Sans,system-ui,sans-serif;' +
-            'font-size:13px;font-weight:600;text-decoration:none;' +
-            'padding:10px 18px;border-radius:12px;' +
-            'box-shadow:0 4px 16px rgba(23,66,140,0.35);' +
-            'display:flex;align-items:center;gap:8px;'
-        );
-        backBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 12l7-7M3 12l7 7"/></svg> Portal do Discente';
-        backBtn.onmouseenter = () => backBtn.style.boxShadow = '0 6px 24px rgba(23,66,140,0.5)';
-        backBtn.onmouseleave = () => backBtn.style.boxShadow = '0 4px 16px rgba(23,66,140,0.35)';
-        document.body.appendChild(backBtn);
+        // ========== MATRÍCULA PAGE TRANSFORMER ==========
+        // Detect "Turmas Selecionadas" page and rebuild with card UI
+        (function transformMatricula() {
+            var conteudo = document.querySelector('#conteudo');
+            if (!conteudo) return;
+
+            // Detect matrícula turmas page via h2 breadcrumb
+            var h2 = conteudo.querySelector('h2');
+            var isTurmasSel = h2 && /turmas\s+selecionadas/i.test(h2.textContent);
+            if (!isTurmasSel) return;
+
+            // Hide footer
+            var rodape = document.getElementById('rodape');
+            if (rodape) rodape.style.display = 'none';
+
+            // ---- Extract student info from table.visualizacao ----
+            var studentName = '', course = '', priority = '';
+            var vizTable = conteudo.querySelector('table.visualizacao');
+            if (vizTable) {
+                vizTable.querySelectorAll('tr').forEach(function (tr) {
+                    var th = tr.querySelector('th');
+                    var td = tr.querySelector('td');
+                    if (!th || !td) return;
+                    var label = th.textContent.trim();
+                    var value = td.textContent.trim();
+                    if (/Discente/i.test(label)) {
+                        // "202200714 - ANA CLARA MORAES CARDOSO - Índice de Prioridade: 51.1"
+                        var nm = value.match(/\d+\s*-\s*([A-ZÁÉÍÓÚÃÕÂÊÎÔÛÇÜ\s.]+)/i);
+                        if (nm) studentName = nm[1].trim().split(/\s+/).map(function (w) {
+                            return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+                        }).join(' ');
+                        var pm = value.match(/Prioridade:\s*([\d.,]+)/i);
+                        if (pm) priority = pm[1];
+                    }
+                    if (/Matriz/i.test(label)) {
+                        course = value;
+                    }
+                });
+            }
+
+            // ---- Extract turmas from linhaPar/linhaImpar rows ----
+            // SIGAA uses invalid nested tables, so query rows directly
+            var turmas = [];
+            var dataRows = conteudo.querySelectorAll('tr.linhaPar, tr.linhaImpar');
+            var currentTurma = null;
+
+            dataRows.forEach(function (row) {
+                var tds = row.querySelectorAll('td');
+                if (tds.length >= 7) {
+                    var firstText = tds[0].textContent.trim();
+                    // Turma data row: first td has single letter (A, B, C...)
+                    if (firstText.length === 1 && /^[A-Z]$/.test(firstText)) {
+                        var code = tds[1].textContent.trim();
+                        var name = tds[2].textContent.trim();
+                        // tds[3] = "Presenciais", tds[4] = CH, tds[5] = position, tds[6] = vagas
+                        var ch = '', pos = '', vagas = '';
+                        for (var j = 3; j < tds.length; j++) {
+                            var val = tds[j].textContent.trim();
+                            if (/presencia|eAD/i.test(val)) continue;
+                            if (!ch && /^\d+$/.test(val)) { ch = val; continue; }
+                            if (ch && !pos && /^\d+$/.test(val)) { pos = val; continue; }
+                            if (ch && pos && !vagas && /^\d+$/.test(val)) { vagas = val; break; }
+                        }
+                        currentTurma = { letter: firstText, code: code, name: name, ch: ch, pos: pos, vagas: vagas, prof: '', delBtn: null };
+                        // Find delete button (the <a> with img[src*="delete"])
+                        var delLink = row.querySelector('a[title*="Remover"]');
+                        if (delLink) currentTurma.delBtn = delLink;
+                        turmas.push(currentTurma);
+                    }
+                } else if (currentTurma && /docente/i.test(row.textContent)) {
+                    // Docente row
+                    var profText = row.textContent.replace(/Docente\(s\):?\s*/i, '').trim();
+                    if (profText) {
+                        currentTurma.prof = profText.split(/\s+/).map(function (w) {
+                            if (w.length <= 2) return w.toLowerCase();
+                            return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+                        }).join(' ');
+                    }
+                }
+            });
+
+            // Calculate totals
+            var totalHoras = 0;
+            turmas.forEach(function (t) { totalHoras += parseInt(t.ch) || 0; });
+
+            // ---- Preserve original forms for JSF submission ----
+            // Save the wrapper with forms before we replace innerHTML
+            var wrapperMenu = conteudo.querySelector('#wrapper-menu-matricula');
+            var savedForms = null;
+            if (wrapperMenu) {
+                savedForms = wrapperMenu.cloneNode(true);
+                savedForms.style.display = 'none';
+            }
+
+            // Save all delete button forms
+            var deleteForms = [];
+            turmas.forEach(function (t) {
+                if (t.delBtn) {
+                    var form = t.delBtn.closest('form');
+                    if (form) deleteForms.push(form.cloneNode(true));
+                }
+            });
+
+            // ---- Extract schedule from #horarios table.formulario ----
+            var schedHTML = '';
+            var schedTable = document.querySelector('#horarios table.formulario');
+            if (schedTable) {
+                var schedRows = schedTable.querySelectorAll('tr');
+                var dayHeaders = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+                schedHTML = '<table class="mat-sched"><thead><tr><th></th>';
+                dayHeaders.forEach(function (d) { schedHTML += '<th>' + d + '</th>'; });
+                schedHTML += '</tr></thead><tbody>';
+
+                // Map turma codes to color classes
+                var codeColors = {};
+                turmas.forEach(function (t, idx) {
+                    codeColors[t.code] = 's' + ((idx % 5) + 1);
+                });
+
+                // Collect schedule data: merge duplicate slot rows (SIGAA duplicates each slot)
+                var slotData = {}; // { "M1": [cell0, cell1, ...cell5] }
+                var slots = ['M1', 'M2', 'M3', 'M4', 'M5', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'N1', 'N2', 'N3', 'N4'];
+
+                for (var ri = 0; ri < schedRows.length; ri++) {
+                    var tds = schedRows[ri].querySelectorAll('td');
+                    if (tds.length < 7) continue;
+                    var slotName = tds[0].textContent.trim();
+                    if (slots.indexOf(slotName) === -1) continue;
+
+                    if (!slotData[slotName]) slotData[slotName] = ['', '', '', '', '', ''];
+
+                    for (var di = 1; di <= 6; di++) {
+                        var cellEl = tds[di];
+                        if (!cellEl) continue;
+                        // Check for acronym (JS-populated schedule data)
+                        var acr = cellEl.querySelector('acronym');
+                        var cellText = acr ? acr.textContent.trim() : cellEl.textContent.trim();
+                        var cellTitle = acr ? (acr.getAttribute('title') || '') : '';
+                        if (cellText && cellText !== '---' && cellText !== '\u2014') {
+                            slotData[slotName][di - 1] = { code: cellText, title: cellTitle };
+                        }
+                    }
+                }
+
+                // Render schedule rows
+                var prevPrefix = '';
+                for (var si = 0; si < slots.length; si++) {
+                    var slot = slots[si];
+                    var prefix = slot[0];
+                    if (prevPrefix && prevPrefix !== prefix) {
+                        schedHTML += '<tr class="sep"><td colspan="7"></td></tr>';
+                    }
+                    prevPrefix = prefix;
+
+                    schedHTML += '<tr><td>' + slot + '</td>';
+                    var data = slotData[slot] || ['', '', '', '', '', ''];
+                    for (var ci = 0; ci < 6; ci++) {
+                        var c = data[ci];
+                        if (c && c.code) {
+                            var cls = codeColors[c.code] || '';
+                            var ttl = c.title ? ' title="' + c.title.replace(/"/g, '&quot;') + '"' : '';
+                            schedHTML += '<td class="' + cls + '"' + ttl + '>' + c.code + '</td>';
+                        } else {
+                            schedHTML += '<td class="e">\u2014</td>';
+                        }
+                    }
+                    schedHTML += '</tr>';
+                }
+                schedHTML += '</tbody></table>';
+            }
+
+            // ---- Build legend ----
+            var legendHTML = '<div class="mat-legend">';
+            turmas.forEach(function (t, idx) {
+                legendHTML += '<div class="mat-legend-item"><div class="mat-legend-dot ld' + ((idx % 5) + 1) + '"></div>' + t.code + ' \u2014 ' + t.name + '</div>';
+            });
+            legendHTML += '</div>';
+
+            // ---- Build action buttons ----
+            // Collect operation links before replacing DOM
+            var opButtons = [];
+            conteudo.querySelectorAll('td.operacao a').forEach(function (a) {
+                opButtons.push({ text: a.textContent.trim(), href: a.getAttribute('href') || '#', onclick: a.getAttribute('onclick') || '' });
+            });
+
+            // ---- SVG icons ----
+            var svgClip = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>';
+            var svgCal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+            var svgWarn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+            var svgDel = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+            var svgCheck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>';
+            var svgX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
+            // Build turma card rows
+            var turmaHTML = '';
+            turmas.forEach(function (t, idx) {
+                turmaHTML += '<div class="mat-turma" data-idx="' + idx + '">' +
+                    '<div class="mat-badge c' + ((idx % 5) + 1) + '">' + t.letter + '</div>' +
+                    '<div class="mat-turma-info">' +
+                    '<div class="mat-turma-code">' + t.code + ' \u2014 Turma ' + t.letter + '</div>' +
+                    '<div class="mat-turma-name">' + t.name + '</div>' +
+                    '<div class="mat-turma-prof">' + (t.prof || 'A Definir') + '</div>' +
+                    '</div>' +
+                    '<div class="mat-turma-stats">' +
+                    '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + t.ch + '</div><div class="mat-turma-stat-lbl">CH</div></div>' +
+                    '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + t.pos + '</div><div class="mat-turma-stat-lbl">Pos</div></div>' +
+                    '<div class="mat-turma-stat"><div class="mat-turma-stat-val green">' + t.vagas + '</div><div class="mat-turma-stat-lbl">Vagas</div></div>' +
+                    '</div>' +
+                    '<button class="mat-turma-del" data-idx="' + idx + '" title="Remover">' + svgDel + '</button>' +
+                    '</div>';
+            });
+
+            // Build actions HTML
+            var actionsHTML = '<div class="mat-actions">';
+            opButtons.forEach(function (btn) {
+                actionsHTML += '<a class="mat-action-btn" href="' + btn.href + '" onclick="' + btn.onclick.replace(/"/g, '&quot;') + '">' +
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
+                    btn.text + '</a>';
+            });
+            // Confirm and Sair buttons will be actual links to the hidden form
+            actionsHTML += '<a class="mat-action-btn mat-action-cancel" href="#" id="mat-btn-sair">' + svgX + ' Sair sem salvar</a>';
+            actionsHTML += '<a class="mat-action-btn mat-action-confirm" href="#" id="mat-btn-confirm">' + svgCheck + ' Confirmar Solicitação</a>';
+            actionsHTML += '</div>';
+
+            // ---- Final HTML ----
+            var newHTML = '' +
+                '<div class="mat-page-top">' +
+                '<div><div class="mat-page-title">Turmas Selecionadas</div>' +
+                '<div class="mat-page-sub">Revise suas turmas e confirme a solicitação de matrícula</div></div>' +
+                '<div class="mat-breadcrumb"><a href="/sigaa/verPortalDiscente.do">Portal</a> <span>\u203a</span> Matrícula \u203a Turmas Selecionadas</div>' +
+                '</div>' +
+                '<div class="mat-alert">' +
+                '<div class="mat-alert-icon">' + svgWarn + '</div>' +
+                '<div><b>Para efetivar sua solicitação é necessário pressionar "Confirmar Solicitação".</b> Após a confirmação será possível imprimir o comprovante.</div>' +
+                '<button class="mat-alert-close" onclick="this.parentElement.style.display=\'none\'">✕</button>' +
+                '</div>' +
+                '<div class="mat-chips">' +
+                '<div class="mat-chip"><div class="mat-chip-icon ci-user">' + I.user + '</div><div><div class="mat-chip-label">Discente</div><div class="mat-chip-value">' + (studentName || 'Aluno') + '</div></div></div>' +
+                '<div class="mat-chip"><div class="mat-chip-icon ci-book">' + I.book + '</div><div><div class="mat-chip-label">Curso</div><div class="mat-chip-value">' + (course || '\u2014') + '</div></div></div>' +
+                '<div class="mat-chip"><div class="mat-chip-icon ci-star">' + I.star + '</div><div><div class="mat-chip-label">Prioridade</div><div class="mat-chip-value"><span class="highlight">' + (priority || '\u2014') + '</span></div></div></div>' +
+                '<div class="mat-chip"><div class="mat-chip-icon ci-clock">' + I.clock + '</div><div><div class="mat-chip-label">Total</div><div class="mat-chip-value"><span class="green">' + totalHoras + ' horas</span> \u00b7 ' + turmas.length + ' turmas</div></div></div>' +
+                '</div>' +
+                actionsHTML +
+                '<div class="mat-grid">' +
+                '<div class="mat-card"><div class="mat-card-header"><div class="mat-card-icon">' + svgClip + '</div><div class="mat-card-title">Turmas Selecionadas</div><span class="mat-card-badge">' + turmas.length + ' turmas</span></div>' +
+                '<div class="mat-card-body">' + turmaHTML + '</div>' +
+                '<div class="mat-card-footer"><span>' + turmas.length + ' turmas selecionadas</span><strong>' + totalHoras + ' horas</strong></div></div>' +
+                '<div class="mat-card"><div class="mat-card-header"><div class="mat-card-icon">' + svgCal + '</div><div class="mat-card-title">Grade de Horários</div></div>' +
+                '<div class="mat-card-body" style="max-height:none">' + schedHTML + '</div>' +
+                legendHTML + '</div>' +
+                '</div>' +
+                '<div id="mat-hidden-forms" style="display:none"></div>';
+
+            // Replace content
+            conteudo.style.cssText = 'background:transparent !important; box-shadow:none !important; padding:0 !important; border-radius:0 !important;';
+            conteudo.innerHTML = newHTML;
+
+            // Re-inject saved forms (hidden) so JSF submission still works
+            var hiddenDiv = document.getElementById('mat-hidden-forms');
+            if (hiddenDiv && savedForms) {
+                hiddenDiv.appendChild(savedForms);
+            }
+            // Also inject delete forms
+            deleteForms.forEach(function (f) {
+                f.style.display = 'none';
+                hiddenDiv.appendChild(f);
+            });
+
+            // Wire confirm button to the original JSF link
+            var matConfirmBtn = document.getElementById('mat-btn-confirm');
+            if (matConfirmBtn) {
+                matConfirmBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var origLink = hiddenDiv.querySelector('a[title="Confirmar Solicitação"], a[id*="linkSubmissao"]');
+                    if (origLink) origLink.click();
+                });
+            }
+
+            // Wire sair button to original JSF link
+            var matSairBtn = document.getElementById('mat-btn-sair');
+            if (matSairBtn) {
+                matSairBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var origLink = hiddenDiv.querySelector('a[title="Sair sem salvar"], a[id*="sairSemSalvar"]');
+                    if (origLink) origLink.click();
+                });
+            }
+
+            // Wire up delete buttons to original remove forms
+            conteudo.querySelectorAll('.mat-turma-del').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var idx = parseInt(btn.getAttribute('data-idx'));
+                    // Find the delete link in the hidden forms
+                    var allDelLinks = hiddenDiv.querySelectorAll('a[title="Remover Turma"]');
+                    if (allDelLinks[idx]) allDelLinks[idx].click();
+                });
+            });
+
+        })();
+
+        // ========== TURMAS DO CURRÍCULO PAGE TRANSFORMER ==========
+        // Detect "Turmas Abertas do Currículo" page and rebuild with card UI
+        // Matches turmas-curriculo-test.html prototype exactly
+        (function transformTurmasCurriculo() {
+            var conteudo = document.querySelector('#conteudo');
+            if (!conteudo) return;
+
+            var h2 = conteudo.querySelector('h2');
+            var isTurmasCurr = h2 && /turmas\s+abertas/i.test(h2.textContent);
+            if (!isTurmasCurr) return;
+
+            // Hide footer
+            var rodape = document.getElementById('rodape');
+            if (rodape) rodape.style.display = 'none';
+
+            // ---- Extract student info ----
+            var studentName = '', course = '', priority = '';
+            var vizTable = conteudo.querySelector('table.visualizacao');
+            if (vizTable) {
+                vizTable.querySelectorAll('tr').forEach(function (tr) {
+                    var th = tr.querySelector('th');
+                    var td = tr.querySelector('td');
+                    if (!th || !td) return;
+                    var label = th.textContent.trim();
+                    var value = td.textContent.trim();
+                    if (/Discente/i.test(label)) {
+                        var nm = value.match(/\d+\s*-\s*([A-ZÁÉÍÓÚÃÕÂÊÎÔÛÇÜ\s.]+)/i);
+                        if (nm) studentName = nm[1].trim().split(/\s+/).map(function (w) {
+                            return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+                        }).join(' ');
+                        var pm = value.match(/Prioridade:\s*([\d.,]+)/i);
+                        if (pm) priority = pm[1];
+                    }
+                    if (/Matriz/i.test(label)) course = value;
+                });
+            }
+
+            // ---- Collect operation buttons ----
+            var opButtons = [];
+            conteudo.querySelectorAll('td.operacao a').forEach(function (a) {
+                opButtons.push({ text: a.textContent.trim().replace(/\s+/g, ' '), href: a.getAttribute('href') || '#', onclick: a.getAttribute('onclick') || '' });
+            });
+
+            // ---- Save the original form for submission ----
+            var savedForm = conteudo.querySelector('form');
+            var savedFormClone = savedForm ? savedForm.cloneNode(true) : null;
+
+            // ---- Parse periods, disciplines, and turmas from SIGAA table ----
+            var periods = [];
+            var currentPeriod = null;
+            var currentDisc = null;
+            var listaTurmas = document.getElementById('lista-turmas-curriculo');
+            if (listaTurmas) {
+                listaTurmas.querySelectorAll('tbody tr').forEach(function (tr) {
+                    // Period header row
+                    if (tr.classList.contains('periodo')) {
+                        currentPeriod = { label: tr.textContent.trim(), disciplines: [], checkbox: tr.querySelector('input[type="checkbox"]') };
+                        periods.push(currentPeriod);
+                        currentDisc = null;
+                        return;
+                    }
+                    // Discipline row
+                    if (tr.classList.contains('disciplina')) {
+                        var tds = tr.querySelectorAll('td');
+                        var code = '', name = '', type = '', equiv = null, blocked = false, blockMsg = '';
+                        tds.forEach(function (td) {
+                            var txt = td.textContent.trim();
+                            // Code cell (usually first non-empty)
+                            if (/^[A-Z]{2,4}\d{3,5}$/.test(txt)) code = txt;
+                            // Check for equivalence link
+                            var eqLink = td.querySelector('a.linkExpressoes, a[onclick*="equivalen"]');
+                            if (eqLink) equiv = { href: eqLink.getAttribute('href') || '#', onclick: eqLink.getAttribute('onclick') || '' };
+                        });
+                        // Try to get discipline name from the row text
+                        var allText = tr.textContent.trim();
+                        // Type detection
+                        if (/OPTATIVA/i.test(allText)) type = 'opt';
+                        else if (/OBRIGAT/i.test(allText)) type = 'req';
+                        // Blocked detection
+                        if (/pr[eé].?requisito/i.test(allText) || /n[aã]o\s+atend/i.test(allText)) {
+                            blocked = true;
+                            var bm = allText.match(/(pr[eé].?requisito[^.]*)/i);
+                            blockMsg = bm ? bm[1].trim() : 'Pré-requisito não atendido';
+                        }
+                        // Extract name: find the longest text cell that isn't code/type/equiv
+                        var nameCell = '';
+                        tds.forEach(function (td) {
+                            var t = td.textContent.trim().replace(/\s+/g, ' ');
+                            if (t.length > nameCell.length && t !== code && !/^(OPTATIVA|OBRIGAT)/i.test(t) && t.length > 3) {
+                                // Skip cells that are just the type or the code
+                                if (t !== type && !(/^[A-Z]{2,4}\d{3,5}$/.test(t))) nameCell = t;
+                            }
+                        });
+                        // Clean the name - remove code, type, equiv text, asterisks, dashes, empty parens
+                        name = nameCell.replace(code, '').replace(/OPTATIVA/gi, '').replace(/OBRIGAT[OÓ]RIA/gi, '').replace(/Equivalentes/gi, '').replace(/Pré-requisito.*/gi, '').replace(/\(\s*\)/g, '').replace(/^[\s*-]+/, '').replace(/[\s*-]+$/, '').trim();
+                        if (!name && tds.length > 1) {
+                            name = tds[1].textContent.trim().replace(/\(\s*\)/g, '').replace(/^[\s*-]+/, '').trim();
+                        }
+                        // Also clean code prefix pattern like "* ICA0582 - NAME"
+                        name = name.replace(/^\*\s*/, '').replace(new RegExp('^' + code.replace(/[.*+?^${}()|[\\]]/g, '\\$&') + '\\s*[-–]?\\s*', 'i'), '').trim();
+
+                        currentDisc = { code: code, name: name, type: type, equiv: equiv, blocked: blocked, blockMsg: blockMsg, turmas: [] };
+                        if (currentPeriod) currentPeriod.disciplines.push(currentDisc);
+                        return;
+                    }
+                    // Turma data row (linhaPar / linhaImpar)
+                    if ((tr.classList.contains('linhaPar') || tr.classList.contains('linhaImpar')) && currentDisc && !currentDisc.blocked) {
+                        var tds = tr.querySelectorAll('td');
+                        if (tds.length < 4) return;
+                        var checkbox = tr.querySelector('input[type="checkbox"]');
+                        var turmaLetter = '';
+                        var turmaName = '';
+                        var prof = '';
+                        var schedule = '';
+                        var local = '';
+                        var subTitle = '';
+
+                        tds.forEach(function (td, idx) {
+                            var txt = td.textContent.trim();
+                            // Turma letter - search all cells for single letter pattern (A, B, A01, A1)
+                            if (/^[A-Z]\d{0,2}$/i.test(txt) && !turmaLetter) turmaLetter = txt;
+                            // Professor name - typically has title-case words separated by spaces
+                            if (txt.match(/^[A-ZÁÉÍÓÚÃÕ][a-záéíóúãõ]+ [A-ZÁÉÍÓÚÃÕ]/) && txt.length > 5) {
+                                if (txt.length > prof.length) prof = txt;
+                            }
+                            // Schedule (pattern like 2M34 or 3T12)
+                            if (/\d[MTN]\d/.test(txt) && !schedule) schedule = txt;
+                            // Local
+                            if (/campo|sala|lab|audit|bloco|jatob|rialma/i.test(txt) && !local) local = txt;
+                            if (/a definir/i.test(txt) && !local) local = txt;
+                        });
+
+                        // Try subtitles from turma name cell
+                        tds.forEach(function (td) {
+                            var t = td.textContent.trim();
+                            if (t.length > 10 && /^[A-ZÁÉÍÓÚÃÕÇÜ\s]+$/.test(t) && !subTitle) subTitle = t;
+                        });
+
+                        // Fallback: try to extract letter from any cell text
+                        if (!turmaLetter) {
+                            tds.forEach(function (td) {
+                                var m = td.textContent.trim().match(/Turma\s+([A-Z]\d{0,2})/i);
+                                if (m && !turmaLetter) turmaLetter = m[1];
+                            });
+                        }
+                        if (!turmaLetter) turmaLetter = String.fromCharCode(65 + (currentDisc.turmas.length)); // fallback: A, B, C...
+
+                        currentDisc.turmas.push({
+                            letter: turmaLetter,
+                            name: 'Turma ' + turmaLetter,
+                            prof: prof || 'Docente a definir',
+                            profDim: !prof,
+                            schedule: schedule,
+                            local: local,
+                            localTbd: /a definir/i.test(local),
+                            subTitle: subTitle,
+                            checkbox: checkbox,
+                            checkValue: checkbox ? checkbox.value : ''
+                        });
+                    }
+                });
+            }
+
+            // ---- SVG Icons ----
+            var svgClock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+            var svgPin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+            var svgZoom = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>';
+            var svgAllowed = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
+            var svgDenied = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/></svg>';
+            var svgPlus = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+            var svgUser = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+            var svgBook = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
+            var svgStar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+
+            // ---- Build action icons map ----
+            var btnIcons = {
+                'ajuda': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>',
+                'equivalente': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
+                'buscar': svgZoom,
+                'ver': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+                'selecionada': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+            };
+
+            // ---- Build header HTML ----
+            var headerHTML = '' +
+                '<div class="tc-page-top">' +
+                '<div>' +
+                '<div class="tc-breadcrumb"><a href="/sigaa/verPortalDiscente.do">Portal do Discente</a> <span>›</span> <a href="#">Matrícula On-Line</a> <span>›</span> Turmas do Currículo</div>' +
+                '<h1 class="tc-page-title">Turmas Abertas do Currículo</h1>' +
+                '<p class="tc-page-sub">Selecione as turmas desejadas e clique em <b>Adicionar Turmas</b></p>' +
+                '</div>' +
+                '</div>';
+
+            // Info cards
+            headerHTML += '<div class="tc-info-row">' +
+                '<div class="tc-info-card"><div class="tc-info-icon ci-user">' + svgUser + '</div><div><div class="tc-info-label">Discente</div><div class="tc-info-value">' + (studentName || 'Aluno') + '</div></div></div>' +
+                '<div class="tc-info-card"><div class="tc-info-icon ci-book">' + svgBook + '</div><div><div class="tc-info-label">Matriz Curricular</div><div class="tc-info-value">' + (course || '\u2014') + '</div></div></div>' +
+                '<div class="tc-info-card"><div class="tc-info-icon ci-star">' + svgStar + '</div><div><div class="tc-info-label">Prioridade</div><div class="tc-info-value accent">' + (priority || '\u2014') + '</div></div></div>' +
+                '</div>';
+
+            // Actions bar
+            headerHTML += '<div class="tc-actions">';
+            opButtons.forEach(function (btn) {
+                var txt = btn.text.toLowerCase();
+                var icon = btnIcons['ajuda']; // default
+                if (txt.indexOf('ajuda') !== -1) icon = btnIcons['ajuda'];
+                else if (txt.indexOf('equivalente') !== -1) icon = btnIcons['equivalente'];
+                else if (txt.indexOf('buscar') !== -1) icon = btnIcons['buscar'];
+                else if (txt.indexOf('ver') !== -1 || txt.indexOf('selecionada') !== -1) icon = btnIcons['ver'];
+                headerHTML += '<a class="tc-action" href="' + btn.href + '" onclick="' + btn.onclick.replace(/"/g, '&quot;') + '">' + icon + btn.text + '</a>';
+            });
+            headerHTML += '</div>';
+
+            // ---- Build period groups HTML ----
+            var colorIdx = 0;
+            var colors = ['c1', 'c2', 'c3', 'c4', 'c5'];
+            var periodsHTML = '';
+
+            periods.forEach(function (period, pIdx) {
+                var discCount = period.disciplines.length;
+                periodsHTML += '<div class="tc-period-group">';
+                periodsHTML += '<div class="tc-period-header">';
+                periodsHTML += '<input type="checkbox" class="tc-check-period" id="tc-p' + pIdx + '" data-period="' + pIdx + '"/>';
+                periodsHTML += '<label for="tc-p' + pIdx + '">' + period.label + '</label>';
+                periodsHTML += '<span class="tc-period-count">' + discCount + ' disciplina' + (discCount !== 1 ? 's' : '') + '</span>';
+                periodsHTML += '</div>';
+
+                period.disciplines.forEach(function (disc) {
+                    var statusClass = disc.blocked ? 'denied' : 'allowed';
+                    var statusSvg = disc.blocked ? svgDenied : svgAllowed;
+                    var badgeClass = disc.type === 'opt' ? 'opt' : 'req';
+                    var badgeText = disc.type === 'opt' ? 'Optativa' : 'Obrigatória';
+
+                    // Discipline row
+                    periodsHTML += '<div class="tc-disc ' + statusClass + '">';
+                    periodsHTML += '<div class="tc-disc-status">' + statusSvg + '</div>';
+                    periodsHTML += '<div class="tc-disc-info">';
+                    periodsHTML += '<span class="tc-disc-code">' + disc.code + '</span>';
+                    periodsHTML += '<span class="tc-disc-name">' + disc.name + '</span>';
+                    periodsHTML += '<span class="tc-badge ' + badgeClass + '">' + badgeText + '</span>';
+                    if (disc.equiv) {
+                        periodsHTML += '<a href="' + disc.equiv.href + '" onclick="' + (disc.equiv.onclick || '').replace(/"/g, '&quot;') + '" class="tc-equiv">Equivalentes</a>';
+                    }
+                    periodsHTML += '</div>';
+                    if (disc.blocked) {
+                        periodsHTML += '<span class="tc-disc-blocked">' + disc.blockMsg + '</span>';
+                    }
+                    periodsHTML += '</div>';
+
+                    // Turma rows under this discipline
+                    disc.turmas.forEach(function (turma) {
+                        var c = colors[colorIdx % 5];
+                        colorIdx++;
+                        periodsHTML += '<div class="tc-turma">';
+                        periodsHTML += '<input type="checkbox" name="selecaoTurmas" class="tc-check" value="' + turma.checkValue + '"/>';
+                        periodsHTML += '<div class="tc-turma-badge ' + c + '">' + turma.letter + '</div>';
+                        periodsHTML += '<div class="tc-turma-info">';
+                        periodsHTML += '<div class="tc-turma-name">' + turma.name;
+                        if (turma.subTitle) periodsHTML += ' <span class="tc-turma-sub">' + turma.subTitle + '</span>';
+                        periodsHTML += '</div>';
+                        periodsHTML += '<div class="tc-turma-prof' + (turma.profDim ? ' dim' : '') + '">' + turma.prof + '</div>';
+                        periodsHTML += '</div>';
+                        periodsHTML += '<div class="tc-turma-meta">';
+                        if (turma.schedule) {
+                            periodsHTML += '<div class="tc-turma-tag">' + svgClock + turma.schedule + '</div>';
+                        }
+                        if (turma.local) {
+                            periodsHTML += '<div class="tc-turma-tag' + (turma.localTbd ? ' loc-tbd' : '') + '">' + svgPin + turma.local + '</div>';
+                        }
+                        periodsHTML += '</div>';
+                        periodsHTML += '<button class="tc-turma-zoom" title="Ver detalhes">' + svgZoom + '</button>';
+                        periodsHTML += '</div>';
+                    });
+                });
+
+                periodsHTML += '</div>';
+            });
+
+            // ---- Build sticky footer ----
+            var footerHTML = '<div class="tc-footer-cta">' +
+                '<div class="tc-footer-info"><span class="tc-selected-count">0</span> turmas selecionadas</div>' +
+                '<button class="tc-btn-confirm" id="tc-btn-add">' + svgPlus + ' Adicionar Turmas</button>' +
+                '</div>';
+
+            // ---- Assemble full page ----
+            var fullHTML = '<div class="sr-content"><div class="sr-container">' +
+                headerHTML + periodsHTML +
+                '</div></div>' + footerHTML +
+                '<div id="tc-hidden-forms" style="display:none"></div>';
+
+            // ---- Replace conteudo ----
+            // Wrap conteudo in sr-main
+            conteudo.className = 'sr-main';
+            conteudo.id = 'tc-main';
+            conteudo.style.cssText = 'flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; position:relative; background:transparent !important; box-shadow:none !important; padding:0 !important; border:none !important; border-radius:0 !important;';
+            conteudo.innerHTML = fullHTML;
+
+            // Re-inject saved form for JSF submission
+            var hiddenDiv = document.getElementById('tc-hidden-forms');
+            if (hiddenDiv && savedFormClone) {
+                hiddenDiv.appendChild(savedFormClone);
+            }
+
+            // ---- Wire up "Adicionar Turmas" button ----
+            var addBtn = document.getElementById('tc-btn-add');
+            if (addBtn) {
+                addBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    // Copy checked values back to the hidden form
+                    var hiddenForm = hiddenDiv.querySelector('form');
+                    if (!hiddenForm) return;
+                    // Clear old checkboxes
+                    hiddenForm.querySelectorAll('input[name="selecaoTurmas"]').forEach(function (cb) { cb.checked = false; });
+                    // Set checked values from new UI
+                    document.querySelectorAll('.tc-check:checked').forEach(function (cb) {
+                        var origCb = hiddenForm.querySelector('input[name="selecaoTurmas"][value="' + cb.value + '"]');
+                        if (origCb) origCb.checked = true;
+                    });
+                    // Find and click the original submit button
+                    var submitBtn = hiddenForm.querySelector('input[type="submit"], button[type="submit"]');
+                    if (submitBtn) submitBtn.click();
+                    else hiddenForm.submit();
+                });
+            }
+
+            // ---- Wire up period checkboxes (select all turmas in period) ----
+            document.querySelectorAll('.tc-check-period').forEach(function (pCheck) {
+                pCheck.addEventListener('change', function () {
+                    var group = pCheck.closest('.tc-period-group');
+                    if (group) {
+                        group.querySelectorAll('.tc-check').forEach(function (cb) {
+                            cb.checked = pCheck.checked;
+                        });
+                        updateCount();
+                    }
+                });
+            });
+
+            // ---- Update selected count ----
+            function updateCount() {
+                var count = document.querySelectorAll('.tc-check:checked').length;
+                var el = document.querySelector('.tc-selected-count');
+                if (el) el.textContent = count;
+            }
+            document.querySelectorAll('.tc-check').forEach(function (cb) {
+                cb.addEventListener('change', updateCount);
+            });
+
+            // ---- Inject CSS ----
+            var tcStyle = document.createElement('style');
+            tcStyle.textContent = `
+/* ======== Turmas Currículo — Card-Based Premium Redesign ======== */
+/* Matches turmas-curriculo-test.html prototype exactly */
+
+/* === PAGE HEADER === */
+.tc-page-top { margin-bottom: 20px; }
+.tc-breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+.tc-breadcrumb a { color:var(--accent); text-decoration:none; font-weight:500; }
+.tc-breadcrumb a:hover { text-decoration:underline; }
+.tc-page-title { font-size:24px; font-weight:800; color:var(--text); letter-spacing:-0.5px; margin:0; }
+.tc-page-sub { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+/* === INFO CARDS === */
+.tc-info-row { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.tc-info-card { display:flex; align-items:center; gap:12px; background:var(--card); padding:14px 18px; border-radius:var(--radius); box-shadow:var(--card-shadow); flex:1; min-width:200px; transition:all 0.2s; border:1px solid transparent; }
+.tc-info-card:hover { box-shadow:var(--card-shadow-hover); border-color:var(--border); }
+.tc-info-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tc-info-icon svg { width:20px; height:20px; }
+.tc-info-icon.ci-user { background:var(--accent-bg); color:var(--accent); }
+.tc-info-icon.ci-book { background:var(--blue-light); color:var(--blue); }
+.tc-info-icon.ci-star { background:var(--purple-bg); color:var(--purple); }
+.tc-info-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.8px; font-weight:700; }
+.tc-info-value { font-size:15px; font-weight:700; color:var(--text); margin-top:2px; }
+.tc-info-value.accent { color:var(--accent); font-size:18px; }
+
+/* === ACTIONS === */
+.tc-actions { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.tc-action { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; font-size:12px; font-weight:600; text-decoration:none !important; cursor:pointer; border:1px solid var(--border); background:var(--card); color:var(--text-secondary) !important; box-shadow:var(--card-shadow); transition:all 0.2s; }
+.tc-action:hover { border-color:var(--accent); color:var(--accent) !important; box-shadow:var(--card-shadow-hover); transform:translateY(-1px); }
+.tc-action svg { width:14px; height:14px; opacity:0.5; }
+.tc-action:hover svg { opacity:1; }
+
+/* === PERIOD GROUP === */
+.tc-period-group { background:var(--card); border-radius:var(--radius-lg); box-shadow:var(--card-shadow); overflow:hidden; margin-bottom:16px; border:1px solid var(--border-light); transition:box-shadow 0.2s; animation:tc-fadeInUp 0.4s ease-out both; }
+.tc-period-group:hover { box-shadow:var(--card-shadow-hover); }
+.tc-period-group:nth-child(2) { animation-delay:0.05s; }
+.tc-period-group:nth-child(3) { animation-delay:0.1s; }
+.tc-period-group:nth-child(4) { animation-delay:0.15s; }
+
+.tc-period-header { display:flex; align-items:center; gap:12px; padding:14px 20px; background:linear-gradient(135deg,#0d2254 0%,#17428c 100%); color:#fff; position:relative; }
+.tc-period-header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,rgba(255,255,255,0.2),transparent 80%); }
+.tc-period-header label { font-size:14px; font-weight:700; letter-spacing:0.2px; cursor:pointer; }
+.tc-period-count { margin-left:auto; font-size:11px; font-weight:600; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.8); }
+
+/* Period checkbox */
+.tc-check-period { -webkit-appearance:none; appearance:none; width:20px; height:20px; border:2px solid rgba(255,255,255,0.4); border-radius:6px; background:rgba(255,255,255,0.08); cursor:pointer; position:relative; flex-shrink:0; transition:all 0.2s ease; }
+.tc-check-period:hover { border-color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.15); }
+.tc-check-period:checked { background:#fff; border-color:#fff; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='%2317428c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; }
+
+/* === DISCIPLINE ROW === */
+.tc-disc { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--border-light); background:#f8fafc; transition:background 0.15s; }
+.tc-disc:hover { background:#f1f5f9; }
+.tc-disc-status { flex-shrink:0; }
+.tc-disc-status svg { width:20px; height:20px; }
+.tc-disc.allowed .tc-disc-status { color:var(--green); }
+.tc-disc.denied .tc-disc-status { color:var(--red); }
+.tc-disc.denied { opacity:0.65; }
+.tc-disc-info { flex:1; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+.tc-disc-code { font-size:11px; font-weight:800; color:var(--blue); letter-spacing:0.5px; flex-shrink:0; }
+.tc-disc-name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tc-disc.denied .tc-disc-name { color:var(--text-muted); }
+.tc-badge { font-size:9px; font-weight:700; padding:2px 8px; border-radius:6px; letter-spacing:0.3px; text-transform:uppercase; flex-shrink:0; }
+.tc-badge.opt { background:var(--purple-bg); color:var(--purple); }
+.tc-badge.req { background:var(--blue-light); color:var(--blue); }
+.tc-equiv { font-size:10px; font-weight:700; color:var(--accent); text-decoration:none; padding:2px 8px; border-radius:6px; background:var(--accent-bg); transition:all 0.15s; flex-shrink:0; }
+.tc-equiv:hover { background:rgba(8,145,178,0.15); }
+.tc-disc-blocked { font-size:10px; font-weight:600; color:var(--red); background:var(--red-bg); padding:3px 10px; border-radius:6px; flex-shrink:0; }
+
+/* === TURMA ROW === */
+.tc-turma { display:flex; align-items:center; gap:14px; padding:14px 20px 14px 52px; border-bottom:1px solid var(--border-light); transition:all 0.15s; cursor:pointer; }
+.tc-turma:last-child { border-bottom:none; }
+.tc-turma:hover { background:#f0f5ff; }
+.tc-turma:has(.tc-check:checked) { background:rgba(8,145,178,0.04); }
+
+/* Turma checkbox */
+.tc-check { -webkit-appearance:none; appearance:none; width:22px; height:22px; border:2.5px solid #64748b; border-radius:7px; background:#f8fafc; cursor:pointer; position:relative; flex-shrink:0; transition:all 0.2s cubic-bezier(0.4,0,0.2,1); box-shadow:inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.1); }
+.tc-check:hover { border-color:var(--accent); background:#fff; box-shadow:0 0 0 4px rgba(8,145,178,0.15); }
+.tc-check:checked { background:var(--accent); border-color:var(--accent); box-shadow:0 2px 8px rgba(8,145,178,0.25); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; animation:tc-checkPop 0.2s ease-out; }
+
+@keyframes tc-checkPop { 0%{transform:scale(0.8)} 60%{transform:scale(1.1)} 100%{transform:scale(1)} }
+@keyframes tc-fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* Badge */
+.tc-turma-badge { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; letter-spacing:-0.3px; }
+.tc-turma-badge.c1 { background:var(--accent-bg); color:var(--accent); }
+.tc-turma-badge.c2 { background:var(--purple-bg); color:var(--purple); }
+.tc-turma-badge.c3 { background:var(--pink-bg); color:var(--pink); }
+.tc-turma-badge.c4 { background:var(--green-bg); color:var(--green); }
+.tc-turma-badge.c5 { background:var(--amber-bg); color:var(--amber); }
+
+.tc-turma-info { flex:1; min-width:0; }
+.tc-turma-name { font-size:14px; font-weight:600; color:var(--text); }
+.tc-turma-sub { font-size:11px; font-weight:500; color:var(--text-muted); margin-left:6px; }
+.tc-turma-prof { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.tc-turma-prof.dim { font-style:italic; color:var(--text-dim); }
+
+.tc-turma-meta { display:flex; gap:8px; flex-shrink:0; }
+.tc-turma-tag { display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--text-secondary); background:#f1f5f9; padding:4px 10px; border-radius:8px; }
+.tc-turma-tag svg { width:12px; height:12px; opacity:0.5; }
+.tc-turma-tag.loc-tbd { color:var(--text-dim); font-style:italic; }
+
+.tc-turma-zoom { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; flex-shrink:0; transition:all 0.2s; }
+.tc-turma-zoom:hover { background:var(--accent-bg); border-color:rgba(8,145,178,0.3); color:var(--accent); transform:scale(1.05); }
+.tc-turma-zoom svg { width:14px; height:14px; }
+
+/* === STICKY FOOTER === */
+.tc-footer-cta { position:absolute; bottom:0; left:0; right:0; display:flex; align-items:center; justify-content:center; gap:20px; padding:16px 28px; background:rgba(248,250,252,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid var(--border); box-shadow:0 -4px 20px rgba(0,0,0,0.04); z-index:50; }
+.tc-footer-info { font-size:13px; color:var(--text-muted); font-weight:500; }
+.tc-selected-count { font-weight:800; color:var(--accent); font-size:16px; }
+.tc-btn-confirm { display:inline-flex; align-items:center; gap:8px; padding:12px 32px; background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; border-radius:12px; font-size:14px; font-weight:700; font-family:inherit; letter-spacing:0.2px; border:none; cursor:pointer; box-shadow:0 4px 14px rgba(22,163,74,0.3),inset 0 1px 0 rgba(255,255,255,0.15); transition:all 0.25s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; }
+.tc-btn-confirm::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 60%); pointer-events:none; }
+.tc-btn-confirm:hover { background:linear-gradient(135deg,#15803d,#166534); box-shadow:0 6px 24px rgba(22,163,74,0.4); transform:translateY(-2px); }
+.tc-btn-confirm:active { transform:translateY(0); }
+.tc-btn-confirm svg { width:16px; height:16px; }
+
+/* === CONTENT AREA === */
+.sr-content { flex:1; overflow-y:auto; padding:24px 28px 100px; }
+.sr-container { max-width:100%; }
+
+/* === Hide SIGAA chrome === */
+#formDescricao { display:none !important; }
+`;
+
+            document.head.appendChild(tcStyle);
+        })();
     }
 
     // ========================================
