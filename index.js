@@ -25,7 +25,14 @@
             return 'notice';
         }
         if (path.includes('/portais/discente/discente.jsf') || path.includes('/verPortalDiscente.do')) {
-            return 'dashboard';
+            // Only treat as dashboard if the page content actually IS the dashboard
+            // (JSF POST navigation can change content without changing the URL)
+            var hasDashboardContent = document.querySelector('#turmas-portal') ||
+                document.querySelector('#perfil-docente') ||
+                document.querySelector('#agenda-docente') ||
+                document.querySelector('.portlet-body');
+            if (hasDashboardContent) return 'dashboard';
+            // Otherwise fall through to 'inner' detection
         }
         if (document.querySelector('h3')?.textContent.includes('Relatório de Notas') ||
             document.querySelector('.tabelaRelatorio caption')) {
@@ -1608,9 +1615,24 @@
     // ========================================
     function buildInner() {
         // Auto-skip matrícula instructions page
+        // IMPORTANT: must return early to prevent transformMatricula() from replacing the DOM
+        // (the instructions page H2 contains "Turmas Selecionadas" which triggers transformMatricula)
         var autoSkipBtn = document.getElementById('form:btnIniciarSolicit');
         if (autoSkipBtn) {
-            setTimeout(function () { autoSkipBtn.click(); }, 1000);
+            var frm = autoSkipBtn.closest('form') || document.getElementById('form');
+            if (frm) {
+                setTimeout(function () {
+                    if (frm.requestSubmit) {
+                        frm.requestSubmit(autoSkipBtn);
+                    } else {
+                        var h = document.createElement('input');
+                        h.type = 'hidden'; h.name = autoSkipBtn.name; h.value = autoSkipBtn.value;
+                        frm.appendChild(h);
+                        frm.submit();
+                    }
+                }, 100);
+            }
+            return; // Don't inject sidebar or run transformations — page is about to navigate
         }
         // ---- Navigation helpers ----
         function decodeEnt(s) {
