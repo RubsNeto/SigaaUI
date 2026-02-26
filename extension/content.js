@@ -1,13 +1,6 @@
-﻿// ==UserScript==
-// @name         SIGAA UFJ - Redesign Moderno
-// @namespace    https://sigaa.sistemas.ufj.edu.br/
-// @version      3.0.0
-// @description  Redesign moderno do portal SIGAA UFJ
-// @author       Rubens Neto
-// @match        https://sigaa.sistemas.ufj.edu.br/sigaa/*
-// @grant        none
-// @run-at       document-end
-// ==/UserScript==
+﻿// SIGAA UFJ - Redesign Moderno v3.0.0
+// Extensão Chrome — Redesign moderno do portal SIGAA UFJ
+// Autor: Rubens Neto
 
 (function () {
     'use strict';
