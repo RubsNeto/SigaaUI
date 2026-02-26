@@ -64,7 +64,7 @@
             name: getText('#info-usuario p.usuario span') || 'Estudante',
             semester: getText('#info-usuario p.periodo-atual strong') || '2025.2',
             unit: getText('#info-usuario p.unidade') || 'ICET (15.20)',
-            logoutUrl: getAttr('#info-sistema span.sair-sistema a', 'href') || '/sigaa/logar.do?dispatch=logOff'
+            logoutUrl: '/sigaa/logar.do?dispatch=logOff&returnUrl=/sigaa/verTelaLogin.do'
         };
     }
 
@@ -702,7 +702,7 @@
             </nav>
         </div>
         <div class="sr-sidebar-footer">
-            <a href="${user.logoutUrl}" class="sr-logout">${I.logout} Sair</a>
+            <a href="#" class="sr-logout" onclick="fetch('/sigaa/logar.do?dispatch=logOff').finally(function(){window.location.href='/sigaa/verTelaLogin.do';});return false;">${I.logout} Sair</a>
         </div>
     </aside>
     <main class="sr-main">

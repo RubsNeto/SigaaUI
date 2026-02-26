@@ -1,4 +1,14 @@
-﻿
+﻿// ==UserScript==
+// @name         SIGAA UFJ - Redesign Moderno
+// @namespace    https://sigaa.sistemas.ufj.edu.br/
+// @version      3.0.0
+// @description  Redesign moderno do portal SIGAA UFJ
+// @author       Rubens Neto
+// @match        https://sigaa.sistemas.ufj.edu.br/sigaa/*
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
 (function () {
     'use strict';
 
@@ -15,7 +25,14 @@
             return 'notice';
         }
         if (path.includes('/portais/discente/discente.jsf') || path.includes('/verPortalDiscente.do')) {
-            return 'dashboard';
+            // Only treat as dashboard if the page content actually IS the dashboard
+            // (JSF POST navigation can change content without changing the URL)
+            var hasDashboardContent = document.querySelector('#turmas-portal') ||
+                document.querySelector('#perfil-docente') ||
+                document.querySelector('#agenda-docente') ||
+                document.querySelector('.portlet-body');
+            if (hasDashboardContent) return 'dashboard';
+            // Otherwise fall through to 'inner' detection
         }
         if (document.querySelector('h3')?.textContent.includes('Relatório de Notas') ||
             document.querySelector('.tabelaRelatorio caption')) {
@@ -47,7 +64,7 @@
             name: getText('#info-usuario p.usuario span') || 'Estudante',
             semester: getText('#info-usuario p.periodo-atual strong') || '2025.2',
             unit: getText('#info-usuario p.unidade') || 'ICET (15.20)',
-            logoutUrl: getAttr('#info-sistema span.sair-sistema a', 'href') || '/sigaa/logar.do?dispatch=logOff'
+            logoutUrl: '/sigaa/logar.do?dispatch=logOff&returnUrl=/sigaa/verTelaLogin.do'
         };
     }
 
@@ -685,7 +702,7 @@
             </nav>
         </div>
         <div class="sr-sidebar-footer">
-            <a href="${user.logoutUrl}" class="sr-logout">${I.logout} Sair</a>
+            <a href="#" class="sr-logout" onclick="fetch('/sigaa/logar.do?dispatch=logOff').finally(function(){window.location.href='/sigaa/verTelaLogin.do';});return false;">${I.logout} Sair</a>
         </div>
     </aside>
     <main class="sr-main">
@@ -1598,9 +1615,24 @@
     // ========================================
     function buildInner() {
         // Auto-skip matrícula instructions page
+        // IMPORTANT: must return early to prevent transformMatricula() from replacing the DOM
+        // (the instructions page H2 contains "Turmas Selecionadas" which triggers transformMatricula)
         var autoSkipBtn = document.getElementById('form:btnIniciarSolicit');
         if (autoSkipBtn) {
-            setTimeout(function () { autoSkipBtn.click(); }, 1000);
+            var frm = autoSkipBtn.closest('form') || document.getElementById('form');
+            if (frm) {
+                setTimeout(function () {
+                    if (frm.requestSubmit) {
+                        frm.requestSubmit(autoSkipBtn);
+                    } else {
+                        var h = document.createElement('input');
+                        h.type = 'hidden'; h.name = autoSkipBtn.name; h.value = autoSkipBtn.value;
+                        frm.appendChild(h);
+                        frm.submit();
+                    }
+                }, 100);
+            }
+            return; // Don't inject sidebar or run transformations — page is about to navigate
         }
         // ---- Navigation helpers ----
         function decodeEnt(s) {
