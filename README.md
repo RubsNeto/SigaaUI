@@ -137,23 +137,19 @@ Tudo roda localmente no navegador do usuário:
 
 ## 🖼️ Prints
 
-Abaixo estão alguns exemplos reais da interface da extensão, na sequência solicitada.
+Abaixo estão alguns exemplos reais da interface da extensão, organizados lado a lado na sequência: **login**, **dashboard**, **matrícula** e **turmas da matrícula**.
 
-### 1. Login
+<div align="center">
+  <img src="./login.png" alt="SigaaUI - Tela de Login" width="49%" />
+  <img src="./dashboard.png" alt="SigaaUI - Dashboard do Portal do Discente" width="49%" />
+</div>
 
-<img src="extension/login.png" alt="SigaaUI - Tela de Login" width="100%" />
+<br/>
 
-### 2. Dashboard
-
-<img src="extension/dashboard.png" alt="SigaaUI - Dashboard do Portal do Discente" width="100%" />
-
-### 3. Matrícula
-
-<img src="extension/matricula.png" alt="SigaaUI - Turmas Selecionadas na Matrícula" width="100%" />
-
-### 4. Turmas da Matrícula
-
-<img src="extension/turmasMatricula.png" alt="SigaaUI - Turmas Abertas do Currículo" width="100%" />
+<div align="center">
+  <img src="./matricula.png" alt="SigaaUI - Turmas Selecionadas na Matrícula" width="49%" />
+  <img src="./turmasMatricula.png" alt="SigaaUI - Turmas Abertas do Currículo" width="49%" />
+</div>
 
 ---
 
@@ -211,11 +207,11 @@ SigaaUI/
 │  │  ├─ icon48.png
 │  │  └─ icon128.png
 │  ├─ content.js
-│  ├─ manifest.json
-│  ├─ login.png
-│  ├─ dashboard.png
-│  ├─ matricula.png
-│  └─ turmasMatricula.png
+│  └─ manifest.json
+├─ dashboard.png
+├─ login.png
+├─ matricula.png
+├─ turmasMatricula.png
 ├─ LICENSE
 └─ README.md
 ```
@@ -228,7 +224,9 @@ Contém a implementação principal da extensão.
 - **manifest.json**: configuração da extensão
 - **content.js**: lógica principal de detecção, leitura do DOM e injeção da interface
 - **icons/**: ícones utilizados pela extensão
-- **prints `.png`**: capturas reais usadas para documentar a interface no README
+
+#### Prints na raiz do repositório
+As imagens `login.png`, `dashboard.png`, `matricula.png` e `turmasMatricula.png` são capturas reais usadas no README para apresentar a interface da extensão.
 
 ---
 
