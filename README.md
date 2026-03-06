@@ -133,6 +133,9 @@ Tudo roda localmente no navegador do usuário:
 - sem coleta de dados
 - sem tracking
 
+### Arquitetura limpa e modular
+Sistemas complexos divididos em funções e arquivos específicos (`utils`, `shared`, `pages`), facilitando a manutenção futura ou atualizações.
+
 ---
 
 ## 🖼️ Prints
@@ -155,19 +158,24 @@ Abaixo estão alguns exemplos reais da interface da extensão, organizados lado 
 
 ## 🧠 Arquitetura
 
-A extensão atua com **content scripts**, analisando a URL e a estrutura do DOM para identificar a página atual e aplicar a interface correspondente.
+A extensão possui um **sistema modular Vanilla JS** sem a necessidade de bundlers pesados, e atua injetando scripts no mesmo contexto (`world: "MAIN"`) da página para interceptar chamadas e submeter formulários JSF de forma 100% aderente ao sistema original.
+
+Os arquivos isolam as separações de responsabilidade:
+- **`router.js`**: Lê a URL e parte do DOM em busca da assinatura de cada página para aplicar as lógicas corretas.
+- **`pages/*.js`**: Módulos que renderizam, organizam ou criam as interfaces com base na localização detectada.
+- **`shared/` / `utils/`**: Utilitários que criam elementos de navegação comuns, estilizam blocos padrões ou processam os ícones SVG.
 
 A lógica do SIGAA continua funcionando normalmente em segundo plano. O **SigaaUI** atua somente na camada visual e de interação.
 
 ```mermaid
 flowchart TD
-  A["Usuário acessa o SIGAA"] --> B["Extensão detecta URL e estrutura da página"]
-  B --> C{"Tipo de página"}
-  C -->|Login| D["Renderiza interface moderna de entrada"]
-  C -->|Avisos| E["Organiza mensagens e avisos"]
-  C -->|Dashboard| F["Renderiza portal mais limpo e navegável"]
-  C -->|Notas| G["Aplica leitura visual e destaque de dados"]
-  C -->|Matrícula| H["Melhora a experiência de seleção de turmas"]
+  A["Usuário acessa o SIGAA"] --> B["Extensão detecta a página (router.js)"]
+  B --> C{"Tipo de página (registry.js)"}
+  C -->|Login| D["Renderiza interface de entrada (pages/login.js)"]
+  C -->|Avisos| E["Organiza mensagens (pages/notice.js)"]
+  C -->|Dashboard| F["Portal moderno e navegável (pages/dashboard.js)"]
+  C -->|Notas| G["Leitura visual em cards (pages/grades.js)"]
+  C -->|Matrícula| H["Melhora visão de seleção de matérias (pages/selectedClasses.js / curriculumClasses.js)"]
   D --> I["Usuário continua usando o SIGAA normalmente"]
   E --> I
   F --> I
@@ -206,7 +214,14 @@ SigaaUI/
 │  │  ├─ icon16.png
 │  │  ├─ icon48.png
 │  │  └─ icon128.png
-│  ├─ content.js
+│  ├─ content/
+│  │  ├─ bootstrap.js
+│  │  ├─ constants.js
+│  │  ├─ registry.js
+│  │  ├─ router.js
+│  │  ├─ pages/
+│  │  ├─ shared/
+│  │  └─ utils/
 │  └─ manifest.json
 ├─ dashboard.png
 ├─ login.png
@@ -221,9 +236,10 @@ SigaaUI/
 #### `extension/`
 Contém a implementação principal da extensão.
 
-- **manifest.json**: configuração da extensão
-- **content.js**: lógica principal de detecção, leitura do DOM e injeção da interface
-- **icons/**: ícones utilizados pela extensão
+- **`manifest.json`**: configuração de permissões e scripts em conformidade com o MV3.
+- **`content/bootstrap.js`**: ponto de entrada e execução isolada.
+- **`content/pages/`**: lógicas separadas (ex: `login.js`, `dashboard.js`, `grades.js`, etc) para injeção de interface.
+- **`icons/`**: ícones da extensão na toolbar.
 
 #### Prints na raiz do repositório
 As imagens `login.png`, `dashboard.png`, `matricula.png` e `turmasMatricula.png` são capturas reais usadas no README para apresentar a interface da extensão.

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SIGAA UFJ - Redesign Moderno",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Redesign moderno do portal SIGAA UFJ",
   "author": "Rubens Neto",
   "icons": {
@@ -11,8 +11,31 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://sigaa.sistemas.ufj.edu.br/sigaa/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://sigaa.sistemas.ufj.edu.br/sigaa/*"
+      ],
+      "js": [
+        "content/utils/dom.js",
+        "content/utils/strings.js",
+        "content/utils/navigation.js",
+        "content/utils/forms.js",
+        "content/shared/icons.js",
+        "content/shared/styles-dashboard.js",
+        "content/shared/styles-login-notice.js",
+        "content/shared/styles-inner.js",
+        "content/shared/styles-curriculo.js",
+        "content/constants.js",
+        "content/router.js",
+        "content/registry.js",
+        "content/pages/login.js",
+        "content/pages/notice.js",
+        "content/pages/grades.js",
+        "content/pages/dashboard.js",
+        "content/pages/selectedClasses.js",
+        "content/pages/curriculumClasses.js",
+        "content/pages/inner.js",
+        "content/bootstrap.js"
+      ],
       "run_at": "document_end",
       "world": "MAIN"
     }
