@@ -59,10 +59,9 @@
             menuHtml += '</div>';
         });
 
-        var institution = S.detectInstitution();
         var headerHtml =
             '<div class="sr-sidebar-header">' +
-            '<div class="sr-logo">' + (institution.id === 'ufg' ? 'UFG' : 'UFJ') + '</div>' +
+            '<div class="sr-logo">S</div>' +
             '<div><div class="sr-header-title">Turma Virtual</div><div class="sr-header-sub">SIGAA</div></div>' +
             '</div>';
 

@@ -173,8 +173,8 @@
         root.innerHTML = '<div class="sr-layout">' +
             '<aside class="sr-sidebar">' +
             '<div class="sr-sidebar-header">' +
-            '<div class="sr-logo">U</div>' +
-            '<div><div class="sr-header-title">Portal do Discente</div><div class="sr-header-sub">SIGAA - UFJ</div></div>' +
+            '<div class="sr-logo">S</div>' +
+            '<div><div class="sr-header-title">Portal do Discente</div><div class="sr-header-sub">SIGAA</div></div>' +
             '</div>' +
             '<div class="sr-sidebar-content">' +
             '<div class="sr-sidebar-label">Menu Principal</div>' +

@@ -314,6 +314,49 @@ td.botoes.nao_salvar a { color: #c62828 !important; font-weight: 600 !important;
     color: #fff !important; background: transparent !important;
     border: none !important; font-weight: 600 !important;
 }
+
+/* ========== RIGHT SIDEBAR WIDGETS (.rich-panel) ========== */
+#baseLayout .rich-panel, .blocoDireita {
+    background: #fff !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+    margin-bottom: 16px !important;
+}
+#baseLayout .rich-panel-header, .blocoDireita .tituloBloco {
+    background: #fff !important;
+    color: #1a2233 !important;
+    padding: 14px 16px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background-image: none !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+#baseLayout .rich-panel-header div { display: flex !important; width: 100% !important; justify-content: space-between !important; align-items: center !important; }
+#baseLayout .rich-panel-header input[type="image"] { opacity: 0.5 !important; transition: opacity 0.2s !important; }
+#baseLayout .rich-panel-header input[type="image"]:hover { opacity: 1 !important; }
+
+#baseLayout .rich-panel-body, .blocoDireita .conteudoBloco {
+    padding: 16px !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+    background: #fff !important;
+}
+#baseLayout .rich-panel-body ul, .blocoDireita .conteudoBloco ul {
+    padding: 0 !important; margin: 0 !important; list-style: none !important;
+}
+#baseLayout .rich-panel-body li, .blocoDireita .conteudoBloco li {
+    margin-bottom: 10px !important; border-bottom: 1px solid #f1f5f9 !important; padding-bottom: 10px !important;
+}
+#baseLayout .rich-panel-body li:last-child, .blocoDireita .conteudoBloco li:last-child {
+    margin-bottom: 0 !important; border-bottom: none !important; padding-bottom: 0 !important;
+}
 `;
 
     // ========================================
