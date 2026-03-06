@@ -14,6 +14,11 @@
         var path = location.pathname;
         var search = location.search;
 
+        // UFG uses SSO CAS
+        if (path.includes('/cas/login')) {
+            return S.PAGE_TYPES.LOGIN;
+        }
+        // UFJ and others use direct JSF/DO
         if (path.includes('verTelaLogin.do') || (path.includes('logar.do') && !search.includes('dispatch=logOff'))) {
             return S.PAGE_TYPES.LOGIN;
         }
@@ -33,6 +38,9 @@
         if (document.querySelector('h3')?.textContent.includes('Relatório de Notas') ||
             document.querySelector('.tabelaRelatorio caption')) {
             return S.PAGE_TYPES.GRADES;
+        }
+        if (document.querySelector('#menuTurmaVirtual') || document.querySelector('.itemMenuHeaderTurma')) {
+            return S.PAGE_TYPES.TURMA;
         }
         if (document.querySelector('#cabecalho')) {
             return S.PAGE_TYPES.INNER;

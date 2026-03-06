@@ -12,7 +12,9 @@
   "content_scripts": [
     {
       "matches": [
-        "https://sigaa.sistemas.ufj.edu.br/sigaa/*"
+        "https://sigaa.sistemas.ufj.edu.br/sigaa/*",
+        "https://sigaa.sistemas.ufg.br/sigaa/*",
+        "https://sso.ufg.br/cas/*"
       ],
       "js": [
         "content/utils/dom.js",
@@ -24,6 +26,7 @@
         "content/shared/styles-login-notice.js",
         "content/shared/styles-inner.js",
         "content/shared/styles-curriculo.js",
+        "content/shared/styles-turma.js",
         "content/constants.js",
         "content/router.js",
         "content/registry.js",
@@ -34,6 +37,7 @@
         "content/pages/selectedClasses.js",
         "content/pages/curriculumClasses.js",
         "content/pages/inner.js",
+        "content/pages/turma.js",
         "content/bootstrap.js"
       ],
       "run_at": "document_end",
@@ -42,6 +46,8 @@
   ],
   "permissions": [],
   "host_permissions": [
-    "https://sigaa.sistemas.ufj.edu.br/*"
+    "https://sigaa.sistemas.ufj.edu.br/*",
+    "https://sigaa.sistemas.ufg.br/*",
+    "https://sso.ufg.br/*"
   ]
 }

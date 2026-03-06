@@ -372,16 +372,16 @@
 /* Quick Actions */
 .sr-actions { display: flex; flex-direction: column; gap: 10px; }
 .sr-action {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 18px; border-radius: 12px;
-    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 10px;
+    font-size: 12px; font-weight: 500;
     cursor: pointer; border: none; text-align: left; width: 100%;
 }
 .sr-action.primary { background: #0891b2; color: #fff; }
 .sr-action.primary:hover { background: #0e7490; }
 .sr-action.outline { background: #fff; border: 1px solid #e2e8f0; color: #475569; }
 .sr-action.outline:hover { background: #f8fafc; }
-.sr-action svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sr-action svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Cards Row */
 .sr-cards-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }

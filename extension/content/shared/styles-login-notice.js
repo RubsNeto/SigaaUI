@@ -138,6 +138,18 @@
     background: linear-gradient(135deg, #1e5ab3, #1a4fa0);
 }
 .lr-submit:active { transform: translateY(0); }
+
+.lr-govbr {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px;
+    background: #fff;
+    color: #1a2233; border: 1.5px solid #e2e8f0; border-radius: 12px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s ease;
+}
+.lr-govbr:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+
 .lr-forgot {
     display: block; text-align: center;
     margin-top: 18px; font-size: 13px;

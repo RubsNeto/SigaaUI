@@ -158,19 +158,119 @@ body, #container {
 #rodape a { color: rgba(255,255,255,0.8) !important; }
 
 /* ========== TABLE STYLES ========== */
-table.listagem thead td, table.listagem thead th {
-    background: linear-gradient(135deg,#17428c,#0f2d66) !important;
-    color: #fff !important; font-weight: 600 !important;
+table.listagem, table.visualizacao, table.formulario {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    background: #fff !important;
+    margin-bottom: 24px !important;
+    border: 1px solid #e2e8f0 !important;
 }
-table.listagem tr.linhaPar { background: #fff !important; }
-table.listagem tr.linhaImpar { background: #f5f8ff !important; }
-table.visualizacao th {
-    background: #17428c !important; color: #fff !important; font-weight: 600 !important;
+table.listagem caption, table.visualizacao caption, table.formulario caption {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #17428c !important;
+    text-align: left !important;
+    padding: 0 0 12px 0 !important;
+    margin-bottom: 12px !important;
+    border-bottom: 2px solid #e5eaf3 !important;
+    background: transparent !important;
 }
-table.formulario tr.titulo td {
-    background: linear-gradient(135deg,#17428c,#0f2d66) !important;
-    color: #fff !important; font-weight: 700 !important;
+table.listagem thead td, table.listagem thead th, table.visualizacao th, table.formulario tr.titulo td {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
 }
+table.listagem tr td, table.visualizacao tr td, table.formulario tr td {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #1a2233 !important;
+    font-size: 13px !important;
+}
+table.listagem tr:last-child td, table.visualizacao tr:last-child td, table.formulario tr:last-child td {
+    border-bottom: none !important;
+}
+table.listagem tr.linhaPar td, table.visualizacao tr.linhaPar td, table.formulario tr.linhaPar td { background: #fff !important; }
+table.listagem tr.linhaImpar td, table.visualizacao tr.linhaImpar td, table.formulario tr.linhaImpar td { background: #f8fafc !important; }
+table.listagem tr.linhaPar:hover td, table.listagem tr.linhaImpar:hover td { background: #f1f5f9 !important; }
+
+/* Period Separators */
+table.listagem tr td.periodo {
+    background: #17428c !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Links inside tables */
+table.listagem td a {
+    color: #0891b2 !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+table.listagem td a:hover {
+    text-decoration: underline !important;
+}
+
+/* "Acessar Turma" button */
+table.listagem td a:has(img[src*="avancar.gif"]) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    background: #eef2f8 !important;
+    border-radius: 8px !important;
+    transition: background 0.2s !important;
+    position: relative !important;
+    text-decoration: none !important;
+}
+table.listagem td a:has(img[src*="avancar.gif"]):hover {
+    background: #dbeafe !important;
+}
+table.listagem td a img[src*="avancar.gif"] {
+    opacity: 0 !important;
+    position: absolute !important;
+    width: 100% !important; height: 100% !important;
+}
+table.listagem td a:has(img[src*="avancar.gif"])::after {
+    content: "→" !important;
+    font-weight: 800 !important;
+    color: #0891b2 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+/* Info Box */
+div.infoAltRem {
+    background: #eef2f8 !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    color: #475569 !important;
+    font-size: 12px !important;
+    margin-bottom: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-variant: normal !important;
+}
+div.infoAltRem img { display: none !important; }
+div.infoAltRem::before {
+    content: "ℹ️" !important;
+    font-size: 16px !important;
+}
+
 table.formulario td acronym {
     color: #17428c !important; font-weight: 700 !important;
     text-decoration: none !important; border-bottom: none !important;

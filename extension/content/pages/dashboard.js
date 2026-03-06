@@ -63,9 +63,55 @@
         var container = document.querySelector('#turmas-portal');
         if (!container) return [];
         var items = [];
-        container.querySelectorAll('a').forEach(function (a) {
-            if (a.href && a.textContent.trim()) {
-                items.push({ name: a.textContent.trim(), href: a.href, el: a });
+        container.querySelectorAll('td.descricao').forEach(function (td) {
+            var a = td.querySelector('a');
+            var tr = td.closest('tr');
+            var local = '', horario = '';
+            if (tr) {
+                var cells = tr.querySelectorAll('td');
+                if (cells.length > 2) {
+                    local = cells[1].textContent.trim();
+                    horario = cells[2].textContent.trim();
+                }
+            }
+            if (a && a.textContent.trim()) {
+                items.push({ name: a.textContent.trim(), href: a.href, el: a, local: local, horario: horario });
+            }
+        });
+        return items;
+    }
+
+    function extractAtividades() {
+        var container = document.querySelector('#avaliacao-portal');
+        if (!container) return [];
+        var items = [];
+        container.querySelectorAll('tbody tr').forEach(function (row) {
+            var cells = row.querySelectorAll('td');
+            if (cells.length >= 3) {
+                var dateText = cells[1].textContent.trim().split('(')[0].trim().replace(/\s+/g, ' ');
+                var statusImg = cells[0].querySelector('img');
+                var isDone = statusImg && statusImg.src.includes('check.png');
+                var courseName = '';
+                var taskName = '';
+                var linkEl = cells[2].querySelector('a');
+                if (linkEl) {
+                    taskName = linkEl.textContent.trim();
+                }
+                var textNodes = Array.from(cells[2].childNodes).filter(function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+                if (textNodes.length > 0) {
+                    courseName = textNodes[0].textContent.trim();
+                } else {
+                    var small = cells[2].querySelector('small');
+                    if (small) {
+                        var smallTextNodes = Array.from(small.childNodes).filter(function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+                        if (smallTextNodes.length > 0) {
+                            courseName = smallTextNodes[0].textContent.trim();
+                        }
+                    }
+                }
+                if (taskName) {
+                    items.push({ date: dateText, course: courseName, task: taskName, isDone: isDone, el: linkEl });
+                }
             }
         });
         return items;
@@ -98,8 +144,21 @@
         var indices = extractIndices();
         var prog = extractProgress();
         var turmas = extractTurmas();
+        var atividades = extractAtividades();
         var forum = extractForum();
         var firstName = user.name.split(' ')[0];
+
+        var turmasHTML = turmas.length === 0 ?
+            '<div class="sr-empty"><div class="sr-empty-icon">' + I.calendar + '</div><div class="sr-empty-text">Nenhuma turma</div><div class="sr-empty-sub">Sem turmas neste semestre</div></div>' :
+            '<div class="sr-actions" style="padding: 0 20px 14px;">' + turmas.map(function (t, i) {
+                return '<div class="sr-action outline" style="align-items:flex-start"><div style="color:#0891b2;margin-top:0;">' + I.book + '</div><div style="flex:1"><div style="font-weight:600;font-size:12px;color:#1a2233;cursor:pointer;" class="sr-turma-link" data-idx="' + i + '">' + t.name + '</div><div style="font-size:10px;color:#64748b;margin-top:2px">' + t.local + ' &bull; ' + t.horario + '</div></div></div>';
+            }).join('') + '</div>';
+
+        var atividadesHTML = atividades.length === 0 ?
+            '<div class="sr-empty"><div class="sr-empty-icon">' + I.alert + '</div><div class="sr-empty-text">Sem atividades</div><div class="sr-empty-sub">Próximos 15 dias sem pendências</div></div>' :
+            '<div class="sr-actions" style="padding: 0 20px 14px;">' + atividades.map(function (a, i) {
+                return '<div class="sr-action outline" style="align-items:flex-start"><div style="color:' + (a.isDone ? '#10b981' : '#f59e0b') + ';margin-top:0;">' + (a.isDone ? I.check : I.clock) + '</div><div style="flex:1"><div style="font-weight:600;font-size:12px;color:#1a2233;cursor:pointer;" class="sr-atividade-link" data-idx="' + i + '">' + a.task + '</div><div style="font-size:10px;color:#64748b;margin-top:2px">' + a.course + ' &bull; ' + a.date + '</div></div></div>';
+            }).join('') + '</div>';
 
         var size = 90, sw = 3, r = (size - sw) / 2;
         var circ = r * 2 * Math.PI;
@@ -195,7 +254,7 @@
             '</nav>' +
             '</div>' +
             '<div class="sr-sidebar-footer">' +
-            '<a href="#" class="sr-logout" onclick="fetch(\'/sigaa/logar.do?dispatch=logOff\').finally(function(){window.location.href=\'/sigaa/verTelaLogin.do\';});return false;">' + I.logout + ' Sair</a>' +
+            '<a href="#" id="sr-logout-btn" class="sr-logout">' + I.logout + ' Sair</a>' +
             '</div>' +
             '</aside>' +
             '<main class="sr-main">' +
@@ -222,24 +281,16 @@
             '<div class="sr-card-header">' +
             '<div class="sr-card-icon">' + I.book + '</div>' +
             '<div class="sr-card-title">Turmas do Semestre</div>' +
-            '<span class="sr-card-link">Ver anteriores →</span>' +
+            '<span class="sr-card-link" onclick="window.location.href=\'/sigaa/portais/discente/turmas.jsf\';return false;">Ver anteriores →</span>' +
             '</div>' +
-            '<div class="sr-empty">' +
-            '<div class="sr-empty-icon">' + I.calendar + '</div>' +
-            '<div class="sr-empty-text">Nenhuma turma</div>' +
-            '<div class="sr-empty-sub">Sem turmas neste semestre</div>' +
-            '</div>' +
+            turmasHTML +
             '</div>' +
             '<div class="sr-card">' +
             '<div class="sr-card-header">' +
             '<div class="sr-card-icon">' + I.clock + '</div>' +
             '<div class="sr-card-title">Atividades</div>' +
             '</div>' +
-            '<div class="sr-empty">' +
-            '<div class="sr-empty-icon">' + I.alert + '</div>' +
-            '<div class="sr-empty-text">Sem atividades</div>' +
-            '<div class="sr-empty-sub">Próximos 15 dias sem pendências</div>' +
-            '</div>' +
+            atividadesHTML +
             '</div>' +
             '<div class="sr-cards-row">' +
             '<div class="sr-card">' +
@@ -331,6 +382,24 @@
             '</div>';
         document.body.appendChild(root);
 
+        // ---- Turma and Atividade handlers ----
+        if (turmas.length > 0) {
+            root.querySelectorAll('.sr-turma-link').forEach(function (el) {
+                el.onclick = function () {
+                    var idx = parseInt(el.dataset.idx);
+                    if (turmas[idx] && turmas[idx].el) turmas[idx].el.click();
+                };
+            });
+        }
+        if (atividades.length > 0) {
+            root.querySelectorAll('.sr-atividade-link').forEach(function (el) {
+                el.onclick = function () {
+                    var idx = parseInt(el.dataset.idx);
+                    if (atividades[idx] && atividades[idx].el) atividades[idx].el.click();
+                };
+            });
+        }
+
         // ---- Forum rows ----
         if (forum.length > 0) {
             var tbody = root.querySelector('#sr-forum-body');
@@ -354,6 +423,22 @@
             root.style.display = active ? 'flex' : 'none';
             toggle.innerHTML = active ? I.star + ' UI Original' : I.star + ' UI Moderna';
         };
+
+        // ---- Logout logic ----
+        var logoutBtn = document.getElementById('sr-logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var inst = S.detectInstitution();
+                fetch('/sigaa/logar.do?dispatch=logOff').finally(function () {
+                    if (inst.id === 'ufg') {
+                        window.location.href = 'https://sso.ufg.br/cas/login';
+                    } else {
+                        window.location.href = '/sigaa/verTelaLogin.do';
+                    }
+                });
+            });
+        }
 
         // ---- Submenu handlers ----
         root.querySelectorAll('.sr-submenu-item').forEach(function (item) {

@@ -80,10 +80,26 @@
             '</nav>' +
             '</div>' +
             '<div class="sr-sidebar-footer">' +
-            '<a href="#" class="sr-logout" onclick="fetch(\'/sigaa/logar.do?dispatch=logOff\').finally(function(){window.location.href=\'/sigaa/verTelaLogin.do\';});return false;">' + I.logout + ' Sair</a>' +
+            '<a href="#" id="sr-logout-btn-inner" class="sr-logout">' + I.logout + ' Sair</a>' +
             '</div>';
 
         document.body.insertBefore(sidebar, document.body.firstChild);
+
+        // Logout Custom Handler
+        var logoutBtn = document.getElementById('sr-logout-btn-inner');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var inst = S.detectInstitution();
+                fetch('/sigaa/logar.do?dispatch=logOff').finally(function () {
+                    if (inst.id === 'ufg') {
+                        window.location.href = 'https://sso.ufg.br/cas/login';
+                    } else {
+                        window.location.href = '/sigaa/verTelaLogin.do';
+                    }
+                });
+            });
+        }
 
         // ---- Wire submenu items ----
         sidebar.querySelectorAll('.sr-submenu-item').forEach(function (item) {
