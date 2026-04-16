@@ -7,6 +7,23 @@
     if (!S.Styles) S.Styles = {};
 
     S.Styles.TURMAS_CURRICULO_CSS = `
+:root {
+    --bg: #eef2f8; --card: #fff;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08);
+    --border: #e2e8f0; --border-light: #f1f5f9;
+    --text: #1a2233; --text-secondary: #475569;
+    --text-muted: #64748b; --text-dim: #94a3b8;
+    --accent: #1a4fa0; --accent-bg: rgba(26,79,160,0.10);
+    --blue: #17428c; --blue-light: rgba(23,66,140,0.08);
+    --green: #16a34a; --green-bg: rgba(22,163,74,0.08);
+    --red: #dc2626; --red-bg: rgba(220,38,38,0.06);
+    --amber: #d97706; --amber-bg: rgba(217,119,6,0.08);
+    --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
+    --pink: #db2777; --pink-bg: rgba(219,39,119,0.08);
+    --radius: 12px; --radius-lg: 16px;
+}
+
 /* ======== Turmas Currículo — Card-Based Premium Redesign ======== */
 
 /* === PAGE HEADER === */
@@ -14,7 +31,7 @@
 .tc-breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
 .tc-breadcrumb a { color:var(--accent); text-decoration:none; font-weight:500; }
 .tc-breadcrumb a:hover { text-decoration:underline; }
-.tc-page-title { font-size:24px; font-weight:800; color:var(--text); letter-spacing:-0.5px; margin:0; }
+.tc-page-title { font-size:24px; font-weight:700; color:var(--text); letter-spacing:-0.5px; margin:0; font-family:'Montserrat','Gotham',system-ui,sans-serif; }
 .tc-page-sub { font-size:13px; color:var(--text-muted); margin-top:4px; }
 
 /* === INFO CARDS === */
@@ -44,7 +61,7 @@
 .tc-period-group:nth-child(3) { animation-delay:0.1s; }
 .tc-period-group:nth-child(4) { animation-delay:0.15s; }
 
-.tc-period-header { display:flex; align-items:center; gap:12px; padding:14px 20px; background:linear-gradient(135deg,#0d2254 0%,#17428c 100%); color:#fff; position:relative; }
+.tc-period-header { display:flex; align-items:center; gap:12px; padding:14px 20px; background:linear-gradient(135deg,#07111F 0%,#0C1E3D 100%); color:#fff; position:relative; }
 .tc-period-header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,rgba(255,255,255,0.2),transparent 80%); }
 .tc-period-header label { font-size:14px; font-weight:700; letter-spacing:0.2px; cursor:pointer; }
 .tc-period-count { margin-left:auto; font-size:11px; font-weight:600; background:rgba(255,255,255,0.15); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.8); }
@@ -52,7 +69,7 @@
 /* Period checkbox */
 .tc-check-period { -webkit-appearance:none; appearance:none; width:20px; height:20px; border:2px solid rgba(255,255,255,0.4); border-radius:6px; background:rgba(255,255,255,0.08); cursor:pointer; position:relative; flex-shrink:0; transition:all 0.2s ease; }
 .tc-check-period:hover { border-color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.15); }
-.tc-check-period:checked { background:#fff; border-color:#fff; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='%2317428c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; }
+.tc-check-period:checked { background:#fff; border-color:#fff; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='%230C1E3D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; }
 
 /* === DISCIPLINE ROW === */
 .tc-disc { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--border-light); background:#f8fafc; transition:background 0.15s; }
@@ -70,19 +87,19 @@
 .tc-badge.opt { background:var(--purple-bg); color:var(--purple); }
 .tc-badge.req { background:var(--blue-light); color:var(--blue); }
 .tc-equiv { font-size:10px; font-weight:700; color:var(--accent); text-decoration:none; padding:2px 8px; border-radius:6px; background:var(--accent-bg); transition:all 0.15s; flex-shrink:0; }
-.tc-equiv:hover { background:rgba(8,145,178,0.15); }
+.tc-equiv:hover { background:rgba(26,79,160,0.15); }
 .tc-disc-blocked { font-size:10px; font-weight:600; color:var(--red); background:var(--red-bg); padding:3px 10px; border-radius:6px; flex-shrink:0; }
 
 /* === TURMA ROW === */
 .tc-turma { display:flex; align-items:center; gap:14px; padding:14px 20px 14px 52px; border-bottom:1px solid var(--border-light); transition:all 0.15s; cursor:pointer; }
 .tc-turma:last-child { border-bottom:none; }
 .tc-turma:hover { background:#f0f5ff; }
-.tc-turma:has(.tc-check:checked) { background:rgba(8,145,178,0.04); }
+.tc-turma:has(.tc-check:checked) { background:rgba(26,79,160,0.06); }
 
 /* Turma checkbox */
 .tc-check { -webkit-appearance:none; appearance:none; width:22px; height:22px; border:2.5px solid #64748b; border-radius:7px; background:#f8fafc; cursor:pointer; position:relative; flex-shrink:0; transition:all 0.2s cubic-bezier(0.4,0,0.2,1); box-shadow:inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.1); }
-.tc-check:hover { border-color:var(--accent); background:#fff; box-shadow:0 0 0 4px rgba(8,145,178,0.15); }
-.tc-check:checked { background:var(--accent); border-color:var(--accent); box-shadow:0 2px 8px rgba(8,145,178,0.25); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; animation:tc-checkPop 0.2s ease-out; }
+.tc-check:hover { border-color:var(--accent); background:#fff; box-shadow:0 0 0 4px rgba(26,79,160,0.15); }
+.tc-check:checked { background:var(--accent); border-color:var(--accent); box-shadow:0 2px 8px rgba(26,79,160,0.25); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8.5L7 11.5L12 5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-size:14px; background-position:center; background-repeat:no-repeat; animation:tc-checkPop 0.2s ease-out; }
 
 @keyframes tc-checkPop { 0%{transform:scale(0.8)} 60%{transform:scale(1.1)} 100%{transform:scale(1)} }
 @keyframes tc-fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
@@ -107,7 +124,7 @@
 .tc-turma-tag.loc-tbd { color:var(--text-dim); font-style:italic; }
 
 .tc-turma-zoom { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; flex-shrink:0; transition:all 0.2s; }
-.tc-turma-zoom:hover { background:var(--accent-bg); border-color:rgba(8,145,178,0.3); color:var(--accent); transform:scale(1.05); }
+.tc-turma-zoom:hover { background:var(--accent-bg); border-color:rgba(26,79,160,0.30); color:var(--accent); transform:scale(1.05); }
 .tc-turma-zoom svg { width:14px; height:14px; }
 
 /* === STICKY FOOTER === */

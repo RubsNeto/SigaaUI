@@ -10,13 +10,13 @@
     // LOGIN CSS
     // ========================================
     S.Styles.LOGIN_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 #login-redesign {
     position: fixed; inset: 0; z-index: 999999;
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(160deg, #17428c 0%, #0f2d66 50%, #0a1f4a 100%);
+    background: linear-gradient(160deg, #0C1E3D 0%, #071428 55%, #040C1A 100%);
     overflow: hidden;
 }
 
@@ -49,16 +49,7 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Watermark logo in background */
-.lr-card::after {
-    content: '';
-    position: absolute;
-    bottom: -430px; right: -611px;
-    width: 1200px; height: 1200px;
-    background: url('https://ufj.edu.br/wp-content/uploads/2026/01/cropped-PNG_VERTICAL_SEM_DESCRITOR.png') no-repeat center / contain;
-    opacity: 0.04;
-    pointer-events: none;
-}
+/* Watermark: injected via JS por instituição */
 
 /* Logo */
 .lr-logo {
@@ -73,8 +64,10 @@
     position: relative; z-index: 1;
 }
 .lr-title {
-    font-size: 22px; font-weight: 700; color: #1a2233;
+    font-size: 22px; font-weight: 700; color: #131E38;
     margin-bottom: 6px;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
+    letter-spacing: -0.5px;
 }
 .lr-subtitle {
     font-size: 13px; color: #94a3b8;
@@ -191,7 +184,7 @@
     color: #1a2233; transform: translateY(-1px);
 }
 .lr-sys-chip.active {
-    background: #17428c; border-color: #17428c;
+    background: #1a4fa0; border-color: #1a4fa0;
     color: #fff;
 }
 .lr-sys-dot {
@@ -220,13 +213,13 @@
     // NOTICE CSS
     // ========================================
     S.Styles.NOTICE_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 #notice-redesign {
     position: fixed; inset: 0; z-index: 999999;
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(160deg, #17428c 0%, #0f2d66 50%, #0a1f4a 100%);
+    background: linear-gradient(160deg, #0C1E3D 0%, #071428 55%, #040C1A 100%);
     overflow: hidden;
 }
 
@@ -261,16 +254,7 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Watermark */
-.nr-card::after {
-    content: '';
-    position: absolute;
-    bottom: -430px; right: -611px;
-    width: 1200px; height: 1200px;
-    background: url('https://ufj.edu.br/wp-content/uploads/2026/01/cropped-PNG_VERTICAL_SEM_DESCRITOR.png') no-repeat center / contain;
-    opacity: 0.04;
-    pointer-events: none;
-}
+/* Watermark: injected via JS por instituição */
 
 /* Header */
 .nr-header {
@@ -281,14 +265,16 @@
 }
 .nr-icon {
     width: 48px; height: 48px; border-radius: 14px;
-    background: #f0f9ff;
+    background: rgba(26,79,160,0.08);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
-.nr-icon svg { width: 24px; height: 24px; color: #0891b2; }
+.nr-icon svg { width: 24px; height: 24px; color: #1a4fa0; }
 .nr-header-text h1 {
-    font-size: 20px; font-weight: 700; color: #1a2233;
+    font-size: 20px; font-weight: 700; color: #131E38;
     margin-bottom: 2px;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
+    letter-spacing: -0.3px;
 }
 .nr-header-text p {
     font-size: 13px; color: #94a3b8;

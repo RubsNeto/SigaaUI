@@ -73,8 +73,8 @@
                 'opacity: 0.15; ' +
                 '}';
         }
-        if (inst.hideCardWatermark) {
-            customCss += '\n.lr-card::after { display: none; }';
+        if (!inst.hideCardWatermark && inst.logoUrl) {
+            customCss += '\n.lr-card::after { content:""; position:absolute; bottom:-430px; right:-611px; width:1200px; height:1200px; background:url("' + inst.logoUrl + '") no-repeat center / contain; opacity:0.04; pointer-events:none; }';
         }
         style.textContent = customCss;
         document.head.appendChild(style);

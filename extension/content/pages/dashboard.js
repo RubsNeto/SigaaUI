@@ -151,18 +151,24 @@
         var turmasHTML = turmas.length === 0 ?
             '<div class="sr-empty"><div class="sr-empty-icon">' + I.calendar + '</div><div class="sr-empty-text">Nenhuma turma</div><div class="sr-empty-sub">Sem turmas neste semestre</div></div>' :
             '<div class="sr-actions" style="padding: 0 20px 14px;">' + turmas.map(function (t, i) {
-                return '<div class="sr-action outline" style="align-items:flex-start"><div style="color:#0891b2;margin-top:0;">' + I.book + '</div><div style="flex:1"><div style="font-weight:600;font-size:12px;color:#1a2233;cursor:pointer;" class="sr-turma-link" data-idx="' + i + '">' + t.name + '</div><div style="font-size:10px;color:#64748b;margin-top:2px">' + t.local + ' &bull; ' + t.horario + '</div></div></div>';
+                return '<div class="sr-action outline" style="align-items:flex-start"><div class="sr-item-icon">' + I.book + '</div><div style="flex:1"><div class="sr-item-title sr-turma-link" data-idx="' + i + '">' + t.name + '</div><div class="sr-item-sub">' + t.local + ' &bull; ' + t.horario + '</div></div></div>';
             }).join('') + '</div>';
 
         var atividadesHTML = atividades.length === 0 ?
             '<div class="sr-empty"><div class="sr-empty-icon">' + I.alert + '</div><div class="sr-empty-text">Sem atividades</div><div class="sr-empty-sub">Próximos 15 dias sem pendências</div></div>' :
             '<div class="sr-actions" style="padding: 0 20px 14px;">' + atividades.map(function (a, i) {
-                return '<div class="sr-action outline" style="align-items:flex-start"><div style="color:' + (a.isDone ? '#10b981' : '#f59e0b') + ';margin-top:0;">' + (a.isDone ? I.check : I.clock) + '</div><div style="flex:1"><div style="font-weight:600;font-size:12px;color:#1a2233;cursor:pointer;" class="sr-atividade-link" data-idx="' + i + '">' + a.task + '</div><div style="font-size:10px;color:#64748b;margin-top:2px">' + a.course + ' &bull; ' + a.date + '</div></div></div>';
+                return '<div class="sr-action outline" style="align-items:flex-start"><div class="sr-item-icon ' + (a.isDone ? 'done' : 'pending') + '">' + (a.isDone ? I.check : I.clock) + '</div><div style="flex:1"><div class="sr-item-title sr-atividade-link" data-idx="' + i + '">' + a.task + '</div><div class="sr-item-sub">' + a.course + ' &bull; ' + a.date + '</div></div></div>';
             }).join('') + '</div>';
 
         var size = 90, sw = 3, r = (size - sw) / 2;
         var circ = r * 2 * Math.PI;
         var offset = circ - (prog.percent / 100) * circ;
+
+        var inst = S.detectInstitution();
+        var instLogoSrc = (inst && inst.logoUrl) ? inst.logoUrl : null;
+        var sidebarLogoHtml = instLogoSrc
+            ? '<img src="' + instLogoSrc + '" alt="' + (inst.name || '') + '">'
+            : I.graduation;
 
         var style = document.createElement('style');
         style.textContent = S.Styles.DASHBOARD_CSS;
@@ -173,8 +179,8 @@
         root.innerHTML = '<div class="sr-layout">' +
             '<aside class="sr-sidebar">' +
             '<div class="sr-sidebar-header">' +
-            '<div class="sr-logo">S</div>' +
-            '<div><div class="sr-header-title">Portal do Discente</div><div class="sr-header-sub">SIGAA</div></div>' +
+            '<div class="sr-logo">' + sidebarLogoHtml + '</div>' +
+            '<div class="sr-header-sub">SIGAA</div>' +
             '</div>' +
             '<div class="sr-sidebar-content">' +
             '<div class="sr-sidebar-label">Menu Principal</div>' +
@@ -182,7 +188,7 @@
             '<a class="sr-menu-item active" href="/sigaa/verPortalDiscente.do">' + I.layout + ' Início</a>' +
             '<div class="sr-menu-item" data-menu="ensino">' + I.book + ' Ensino' +
             '<div class="sr-submenu">' +
-            '<a class="sr-submenu-item" data-grades="true">📊 Minhas Notas</a>' +
+            '<a class="sr-submenu-item" data-grades="true">Minhas Notas</a>' +
             '<a class="sr-submenu-item" data-action="matriculaGraduacao.telaInstrucoes">Realizar Matrícula</a>' +
             '<a class="sr-submenu-item" data-action="matriculaGraduacao.iniciarSolicitacaoAcrescimo">Acréscimo de Disciplinas</a>' +
             '<a class="sr-submenu-item" data-action="matriculaGraduacao.iniciarSolicitacaoCancelamento">Cancelamento de Disciplina</a>' +
@@ -250,30 +256,22 @@
             '<div class="sr-sidebar-label">Atalhos</div>' +
             '<nav class="sr-menu">' +
             '<a class="sr-menu-item" href="/sigaa/abrirCaixaPostal.jsf?sistema=2">' + I.mail + ' Caixa Postal</a>' +
-            '<a class="sr-menu-item" href="https://atendimento.ufj.edu.br/" target="_blank">' + I.headphones + ' Abrir Chamado</a>' +
+            (inst && inst.id !== 'ufg' ? '<a class="sr-menu-item" href="https://atendimento.ufj.edu.br/" target="_blank">' + I.headphones + ' Abrir Chamado</a>' : '') +
             '</nav>' +
             '</div>' +
             '<div class="sr-sidebar-footer">' +
+            '<div class="sr-footer-actions">' +
+            '<button id="sr-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> UI Original</button>' +
+            '<button id="sr-theme-btn" title="Alternar tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>' +
+            '</div>' +
             '<a href="#" id="sr-logout-btn" class="sr-logout">' + I.logout + ' Sair</a>' +
             '</div>' +
             '</aside>' +
             '<main class="sr-main">' +
             '<div class="sr-container">' +
             '<div class="sr-top">' +
-            '<div>' +
-            '<div class="sr-greeting">Olá, ' + firstName + '! 👋</div>' +
-            '<div class="sr-greeting-sub">Bem-vindo ao seu portal acadêmico</div>' +
-            '</div>' +
-            '<div class="sr-chips">' +
-            '<div class="sr-chip">' +
-            '<div class="sr-chip-icon">' + I.calendar + '</div>' +
-            '<div><div class="sr-chip-label">Semestre</div><div class="sr-chip-value">' + user.semester + '</div></div>' +
-            '</div>' +
-            '<div class="sr-chip">' +
-            '<div class="sr-chip-icon">' + I.building + '</div>' +
-            '<div><div class="sr-chip-label">Unidade</div><div class="sr-chip-value">' + user.unit + '</div></div>' +
-            '</div>' +
-            '</div>' +
+            '<div class="sr-greeting">Bem-vindo, ' + firstName + '.</div>' +
+            '<div class="sr-greeting-sub">Painel acadêmico &middot; ' + user.semester + ' &middot; ' + user.unit + '</div>' +
             '</div>' +
             '<div class="sr-grid">' +
             '<div class="sr-col-main">' +
@@ -317,9 +315,9 @@
             '<div class="sr-card">' +
             '<div class="sr-card-header">' +
             '<div class="sr-card-icon">' + I.message + '</div>' +
-            '<div><div class="sr-card-title">Fórum do Curso</div><div style="font-size:11px;color:#64748b">' + (profile.curso || 'Ciência da Computação') + '</div></div>' +
+            '<div><div class="sr-card-title">Fórum do Curso</div><div class="sr-card-sub">' + (profile.curso || 'Ciência da Computação') + '</div></div>' +
             '</div>' +
-            '<p style="font-size:11px;color:#94a3b8;margin-bottom:16px">Este fórum é destinado para discussões relacionadas ao seu curso.</p>' +
+            '<p class="sr-card-desc">Este fórum é destinado para discussões relacionadas ao seu curso.</p>' +
             (forum.length === 0 ? '<div class="sr-empty"><div class="sr-empty-icon">' + I.message + '</div><div class="sr-empty-text">Sem tópicos</div></div>' :
                 '<table class="sr-table">' +
                 '<thead><tr><th style="width:50%">Título</th><th style="width:15%">Autor</th><th style="width:15%;text-align:center">Respostas</th><th style="width:20%">Data</th></tr></thead>' +
@@ -331,8 +329,8 @@
             '<div class="sr-card sr-profile">' +
             '<div class="sr-profile-photo">' +
             '<svg class="sr-profile-ring" width="' + size + '" height="' + size + '" style="transform:rotate(-90deg)">' +
-            '<circle stroke="#e2e8f0" stroke-width="' + sw + '" fill="transparent" r="' + r + '" cx="' + (size / 2) + '" cy="' + (size / 2) + '"/>' +
-            '<circle stroke="#0891b2" stroke-width="' + sw + '" stroke-linecap="round" fill="transparent" r="' + r + '" cx="' + (size / 2) + '" cy="' + (size / 2) + '" style="stroke-dasharray:' + circ + ';stroke-dashoffset:' + offset + '"/>' +
+            '<circle class="sr-ring-track" stroke-width="' + sw + '" fill="transparent" r="' + r + '" cx="' + (size / 2) + '" cy="' + (size / 2) + '"/>' +
+            '<circle class="sr-ring-progress" stroke-width="' + sw + '" stroke-linecap="round" fill="transparent" r="' + r + '" cx="' + (size / 2) + '" cy="' + (size / 2) + '" style="stroke-dasharray:' + circ + ';stroke-dashoffset:' + offset + '"/>' +
             '</svg>' +
             '<div class="sr-profile-avatar">' + (profile.photo ? '<img src="' + profile.photo + '" alt="Foto">' : I.user) + '</div>' +
             '<div class="sr-profile-percent">' + prog.percent + '%</div>' +
@@ -412,16 +410,57 @@
         }
 
         // ---- Toggle button ----
-        var toggle = document.createElement('button');
-        toggle.id = 'sr-toggle';
-        toggle.innerHTML = I.star + ' UI Original';
-        document.body.appendChild(toggle);
-
+        var toggle = root.querySelector('#sr-toggle');
         var active = true;
+        var floatBtn = null;
+
+        var powerSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>';
+        var moonSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        var sunSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+
+        // ---- Apply saved theme ----
+        var savedTheme = localStorage.getItem('sr-theme') || 'light';
+        if (savedTheme === 'dark') root.setAttribute('data-sr-theme', 'dark');
+
+        var themeBtn = root.querySelector('#sr-theme-btn');
+        function updateThemeIcon() {
+            var isDark = root.getAttribute('data-sr-theme') === 'dark';
+            if (themeBtn) themeBtn.innerHTML = isDark ? sunSvg : moonSvg;
+        }
+        updateThemeIcon();
+
+        if (themeBtn) {
+            themeBtn.addEventListener('click', function () {
+                var isDark = root.getAttribute('data-sr-theme') === 'dark';
+                if (isDark) {
+                    root.removeAttribute('data-sr-theme');
+                    localStorage.setItem('sr-theme', 'light');
+                } else {
+                    root.setAttribute('data-sr-theme', 'dark');
+                    localStorage.setItem('sr-theme', 'dark');
+                }
+                updateThemeIcon();
+            });
+        }
+
         toggle.onclick = function () {
             active = !active;
             root.style.display = active ? 'flex' : 'none';
-            toggle.innerHTML = active ? I.star + ' UI Original' : I.star + ' UI Moderna';
+            if (!active) {
+                floatBtn = document.createElement('button');
+                floatBtn.id = 'sr-toggle-float';
+                floatBtn.innerHTML = powerSvg + ' UI Moderna';
+                floatBtn.onclick = function () {
+                    active = true;
+                    root.style.display = 'flex';
+                    floatBtn.remove();
+                    floatBtn = null;
+                };
+                document.body.appendChild(floatBtn);
+            } else if (floatBtn) {
+                floatBtn.remove();
+                floatBtn = null;
+            }
         };
 
         // ---- Logout logic ----
@@ -439,6 +478,18 @@
                 });
             });
         }
+
+        // ---- Accordion menu ----
+        root.querySelectorAll('.sr-menu-item[data-menu]').forEach(function (menuItem) {
+            menuItem.addEventListener('click', function (e) {
+                if (e.target.closest('.sr-submenu')) return;
+                var isOpen = menuItem.classList.contains('open');
+                root.querySelectorAll('.sr-menu-item[data-menu].open').forEach(function (el) {
+                    el.classList.remove('open');
+                });
+                if (!isOpen) menuItem.classList.add('open');
+            });
+        });
 
         // ---- Submenu handlers ----
         root.querySelectorAll('.sr-submenu-item').forEach(function (item) {

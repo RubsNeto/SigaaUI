@@ -28,7 +28,7 @@
     display: flex !important;
     flex-direction: row !important;
     align-items: flex-start !important;
-    margin-left: 215px !important; /* Make room for Custom Turma sr-sidebar */
+    margin-left: 200px !important; /* Make room for Custom Turma sr-sidebar */
     padding: 24px !important;
     gap: 24px !important;
     box-sizing: border-box !important;
@@ -64,16 +64,18 @@
     color: #1a2233 !important;
     line-height: 1.5 !important;
     font-size: 13px !important;
-    font-family: 'Inter', system-ui, sans-serif !important;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif !important;
 }
 
 #conteudo h2.turma-main-title {
-    color: #17428c !important; 
+    color: #131E38 !important; 
     font-weight: 700 !important;
     font-size: 18px !important; 
     margin: 0 0 16px 0 !important;
     padding-bottom: 12px !important;
     border-bottom: 2px solid #e5eaf3 !important;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif !important;
+    letter-spacing: -0.3px !important;
 }
 
 #conteudo a { color: #17428c !important; text-decoration: none !important; font-weight: 500 !important; }
@@ -159,18 +161,19 @@
 
 /* Buttons & Inputs */
 #conteudo input[type="submit"], #conteudo input[type="button"], #conteudo button {
-    background: #17428c !important;
+    background: linear-gradient(135deg, #1a4fa0, #0f2d66) !important;
     color: #fff !important;
     border: none !important;
     padding: 8px 16px !important;
     border-radius: 6px !important;
     cursor: pointer !important;
     font-weight: 500 !important;
-    transition: background 0.15s !important;
+    transition: all 0.15s !important;
     font-size: 12px !important;
+    box-shadow: 0 2px 6px rgba(26,79,160,0.2) !important;
 }
 #conteudo input[type="submit"]:hover, #conteudo input[type="button"]:hover, #conteudo button:hover {
-    background: #0f2d66 !important;
+    background: linear-gradient(135deg, #1e5bbf, #17428c) !important;
 }
 
 /* Custom Menu in Sidebar adjustments */
@@ -226,7 +229,9 @@
 }
 .turma-accordion-content .turma-menu-item.active {
     color: #fff !important;
-    background: linear-gradient(135deg, #1a4fa0 0%, #17428c 100%) !important;
+    background: rgba(26,79,160,0.25) !important;
+    border-left: 3px solid #4a90d9 !important;
+    padding-left: 9px !important;
     font-weight: 600 !important;
 }
     `;

@@ -59,10 +59,16 @@
             menuHtml += '</div>';
         });
 
+        var inst = S.detectInstitution();
+        var instLogoSrc = (inst && inst.logoUrl) ? inst.logoUrl : null;
+        var sidebarLogoHtml = instLogoSrc
+            ? '<img src="' + instLogoSrc + '" alt="' + (inst.name || '') + '">'
+            : I.graduation;
+
         var headerHtml =
             '<div class="sr-sidebar-header">' +
-            '<div class="sr-logo">S</div>' +
-            '<div><div class="sr-header-title">Turma Virtual</div><div class="sr-header-sub">SIGAA</div></div>' +
+            '<div class="sr-logo">' + sidebarLogoHtml + '</div>' +
+            '<div class="sr-header-sub">SIGAA</div>' +
             '</div>';
 
         // Add back button taking the user to the generic Inner Sidebar entry (Portais > Discente)
@@ -108,6 +114,10 @@
                 }
             });
         });
+
+        // Apply saved theme before injecting CSS
+        var savedThemeTurma = localStorage.getItem('sr-theme') || 'light';
+        if (savedThemeTurma === 'dark') document.body.setAttribute('data-sr-theme', 'dark');
 
         // Inject INNER_CSS globally (since we need .sr-sidebar styles)
         var innerStyle = document.createElement('style');

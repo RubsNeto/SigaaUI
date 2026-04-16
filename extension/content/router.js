@@ -26,14 +26,14 @@
             return S.PAGE_TYPES.NOTICE;
         }
         if (path.includes('/portais/discente/discente.jsf') || path.includes('/verPortalDiscente.do')) {
-            // Only treat as dashboard if the page content actually IS the dashboard
-            // (JSF POST navigation can change content without changing the URL)
+            // Only treat as dashboard if the page content actually IS the dashboard.
+            // NOTE: .portlet-body is too generic (exists on many SIGAA JSF pages).
+            // Use only dashboard-specific markers.
             var hasDashboardContent = document.querySelector('#turmas-portal') ||
                 document.querySelector('#perfil-docente') ||
-                document.querySelector('#agenda-docente') ||
-                document.querySelector('.portlet-body');
+                document.querySelector('#agenda-docente');
             if (hasDashboardContent) return S.PAGE_TYPES.DASHBOARD;
-            // Otherwise fall through to 'inner' detection
+            // Otherwise fall through to inner detection
         }
         if (document.querySelector('h3')?.textContent.includes('Relatório de Notas') ||
             document.querySelector('.tabelaRelatorio caption')) {
@@ -42,8 +42,18 @@
         if (document.querySelector('#menuTurmaVirtual') || document.querySelector('.itemMenuHeaderTurma')) {
             return S.PAGE_TYPES.TURMA;
         }
-        if (document.querySelector('#cabecalho')) {
-            return S.PAGE_TYPES.INNER;
+        // INNER detection: UFJ uses #cabecalho; UFG may use different structure.
+        // Try multiple known SIGAA content container selectors.
+        if (document.querySelector('#cabecalho') ||
+            document.querySelector('#conteudo') ||
+            document.querySelector('#container') ||
+            document.querySelector('.formSubmet') ||
+            document.querySelector('#baseLayout')) {
+            // Exclude pages that are actually the dashboard
+            var isDash = document.querySelector('#turmas-portal') ||
+                document.querySelector('#perfil-docente') ||
+                document.querySelector('#agenda-docente');
+            if (!isDash) return S.PAGE_TYPES.INNER;
         }
         return null;
     };

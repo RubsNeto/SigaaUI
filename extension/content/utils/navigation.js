@@ -41,7 +41,7 @@
         // O nome da variável segue o padrão: menu_form_menu_discente_j_id_jsp_*_menu
         var scripts = Array.from(document.querySelectorAll('script'));
         for (var i = 0; i < scripts.length; i++) {
-            var m = scripts[i].textContent.match(/var ((?:menu_)?form_menu_discente[\w]+)\s*=/);
+            var m = scripts[i].textContent.match(/var (((?:menu_)?form_menu_(?:discente|portlet)[\w]+|menu_(?:discente|portlet)[\w]+))\s*=/);
             if (m && window[m[1]]) return window[m[1]];
         }
         return null;
@@ -54,7 +54,7 @@
      */
     S.getSigaaMenuDataByKey = function getSigaaMenuDataByKey() {
         var menuKey = Object.keys(window).find(function (k) {
-            return /form_menu_discente.*_menu$/.test(k) && Array.isArray(window[k]);
+            return (/form_menu_discente.*_menu$/.test(k) || /menu.*discente.*_menu$/.test(k) || /form_menu.*portlet.*_menu$/.test(k)) && Array.isArray(window[k]);
         });
         return menuKey ? window[menuKey] : null;
     };
@@ -70,7 +70,9 @@
 
         var form = document.querySelector('form[id$="form_menu_discente"]') ||
             document.querySelector('form[id*="form_menu_discente"]') ||
-            document.querySelector('form[id*="menu_discente"]');
+            document.querySelector('form[id*="menu_discente"]') ||
+            document.querySelector('form[id*="discente"][id*="menu"]') ||
+            document.querySelector('form[id*="menu"][id*="portlet"]');
 
         if (jscookAction && form) {
             var input = form.querySelector('input[name="jscook_action"]');
@@ -101,7 +103,10 @@
         var action = menuData ? S.findMenuAction(menuData, displayText) : null;
 
         var form = document.querySelector('form[id$="form_menu_discente"]') ||
-            document.querySelector('form[id*="form_menu_discente"]');
+            document.querySelector('form[id*="form_menu_discente"]') ||
+            document.querySelector('form[id*="menu_discente"]') ||
+            document.querySelector('form[id*="discente"][id*="menu"]') ||
+            document.querySelector('form[id*="menu"][id*="portlet"]');
 
         if (action && form) {
             var inp = form.querySelector('input[name="jscook_action"]');

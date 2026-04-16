@@ -7,6 +7,8 @@
     var S = window.SigaaUI = window.SigaaUI || {};
 
     function buildNotice() {
+        var inst = S.detectInstitution();
+
         // Extract original form and buttons
         var originalForm = document.querySelector('form');
         var formAction = originalForm ? originalForm.action : '';
@@ -37,7 +39,17 @@
         var bellIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
 
         var style = document.createElement('style');
-        style.textContent = S.Styles.NOTICE_CSS;
+        var customCss = S.Styles.NOTICE_CSS;
+        if (inst.bgUrl) {
+            customCss += '\n.nr-bg::before { ' +
+                'background-image: url("' + inst.bgUrl + '"), url("' + inst.bgUrl + '"); ' +
+                'background-size: 800px, 1000px; ' +
+                'background-position: -200px -100px, calc(100% + 200px) calc(100% + 200px); ' +
+                'background-repeat: no-repeat; ' +
+                'opacity: 0.15; ' +
+                '}';
+        }
+        style.textContent = customCss;
         document.head.appendChild(style);
 
         var root = document.createElement('div');
@@ -65,7 +77,7 @@
             '</div>' +
             '</div>' +
             '<div class="nr-footer">' +
-            'SIGAA | <a href="https://ufj.edu.br" target="_blank">UFJ</a> • Secretaria de Tecnologia da Informação' +
+            'SIGAA | <a href="https://' + inst.id + '.edu.br" target="_blank">' + inst.name + '</a> • Secretaria de Tecnologia da Informação' +
             '</div>';
 
         document.body.appendChild(root);

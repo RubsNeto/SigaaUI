@@ -56,6 +56,9 @@
             star: '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
         };
 
+        var savedThemeGrades = localStorage.getItem('sr-theme') || 'light';
+        if (savedThemeGrades === 'dark') document.body.setAttribute('data-sr-theme', 'dark');
+
         var style = document.createElement('style');
         style.textContent = S.Styles.GRADES_CSS;
         document.head.appendChild(style);
@@ -85,11 +88,16 @@
                 '</div>';
         }).join('');
 
+        var inst = S.detectInstitution();
+        var instLogoSrc = (inst && inst.logoUrl) ? inst.logoUrl : null;
+        var grLogoHtml = instLogoSrc
+            ? '<img src="' + instLogoSrc + '" alt="' + (inst.name || '') + '" style="width:100%;height:100%;object-fit:contain;filter:brightness(0) invert(1);padding:4px;">'
+            : I.graduation;
+
         root.innerHTML =
             '<aside class="gr-sidebar">' +
             '<div class="gr-sidebar-header">' +
-            '<div class="gr-logo">U</div>' +
-            '<div><div class="gr-sidebar-title">Portal do Discente</div><div class="gr-sidebar-sub">SIGAA - UFJ</div></div>' +
+            '<div class="gr-logo">' + grLogoHtml + '</div>' +
             '</div>' +
             '<nav class="gr-nav">' +
             '<a class="gr-nav-item" href="/sigaa/verPortalDiscente.do">' + grIcons.home + ' Início</a>' +
