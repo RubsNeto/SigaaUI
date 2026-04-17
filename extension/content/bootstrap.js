@@ -11,6 +11,12 @@
     var S = window.SigaaUI;
     if (!S) return;
 
+    // Usuário desativou a UI moderna neste domínio: apenas exibe botão para religar
+    if (S.isUIDisabled && S.isUIDisabled()) {
+        if (S.renderEnableButton) S.renderEnableButton();
+        return;
+    }
+
     function init() {
         try {
             var pageType = S.detectPage();

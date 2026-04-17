@@ -152,17 +152,27 @@ div.header,
 }
 .sr-logout:hover { background: rgba(255,255,255,0.15); }
 .sr-logout svg { width: 14px; height: 14px; }
-#sr-theme-btn-inner {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    width: 100%; background: rgba(255,255,255,0.05);
+#sr-toggle-inner {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
     padding: 10px 12px; color: rgba(255,255,255,0.45);
     font-size: 11px; font-weight: 500; cursor: pointer;
     font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
-    transition: all 0.2s; box-sizing: border-box;
+    transition: all 0.2s; box-sizing: border-box; min-width: 0;
+}
+#sr-toggle-inner:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.15); }
+#sr-toggle-inner svg { width: 13px; height: 13px; flex-shrink: 0; }
+#sr-theme-btn-inner {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; min-width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.45); cursor: pointer;
+    transition: all 0.2s; padding: 0; box-sizing: border-box;
+    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
 }
 #sr-theme-btn-inner:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.15); }
-#sr-theme-btn-inner svg { width: 13px; height: 13px; flex-shrink: 0; }
+#sr-theme-btn-inner svg { width: 14px; height: 14px; }
 
 /* ---- Main content layout ---- */
 body, #container, #wrapper, #baseLayout {

@@ -163,4 +163,79 @@
         var timer = setTimeout(dismiss, 7000);
         toast.querySelector('#sr-toast-close').addEventListener('click', dismiss);
     };
+
+    /**
+     * Toggle global da extensão: persiste estado "desabilitada" por origem via
+     * localStorage. Quando desabilitada, o bootstrap sai cedo e apenas exibe
+     * um botão flutuante "UI Moderna" para religar.
+     */
+    var DISABLED_KEY = 'sigaa-ui-disabled';
+
+    S.isUIDisabled = function isUIDisabled() {
+        try { return localStorage.getItem(DISABLED_KEY) === '1'; } catch (e) { return false; }
+    };
+
+    S.disableUI = function disableUI() {
+        try { localStorage.setItem(DISABLED_KEY, '1'); } catch (e) { }
+        location.reload();
+    };
+
+    S.enableUI = function enableUI() {
+        try { localStorage.removeItem(DISABLED_KEY); } catch (e) { }
+        location.reload();
+    };
+
+    /**
+     * Renderiza um botão flutuante independente do CSS da extensão (estilos inline)
+     * para permitir que o usuário reative a UI moderna com um clique.
+     */
+    S.renderEnableButton = function renderEnableButton() {
+        function mount() {
+            if (!document.body) return;
+            if (document.getElementById('sigaa-ui-enable-btn')) return;
+            var btn = document.createElement('button');
+            btn.id = 'sigaa-ui-enable-btn';
+            btn.type = 'button';
+            btn.title = 'Reativar a interface moderna do SigaaUI';
+            btn.innerHTML =
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">' +
+                '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>' +
+                '<line x1="12" y1="2" x2="12" y2="12"/>' +
+                '</svg>' +
+                '<span>UI Moderna</span>';
+            btn.setAttribute('style', [
+                'position:fixed',
+                'bottom:20px',
+                'left:20px',
+                'z-index:2147483647',
+                'display:flex',
+                'align-items:center',
+                'gap:7px',
+                'padding:9px 14px',
+                'background:#07111F',
+                'color:rgba(255,255,255,0.9)',
+                'border:1px solid rgba(26,79,160,0.35)',
+                'border-radius:10px',
+                'font:500 12px/1 Montserrat,Gotham,system-ui,sans-serif',
+                'cursor:pointer',
+                'box-shadow:0 4px 16px rgba(0,0,0,0.4)',
+                'transition:background 0.2s,color 0.2s'
+            ].join(';'));
+            btn.addEventListener('mouseenter', function () {
+                btn.style.background = '#1a4fa0';
+                btn.style.color = '#fff';
+            });
+            btn.addEventListener('mouseleave', function () {
+                btn.style.background = '#07111F';
+                btn.style.color = 'rgba(255,255,255,0.9)';
+            });
+            btn.addEventListener('click', S.enableUI);
+            document.body.appendChild(btn);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount);
+        } else {
+            mount();
+        }
+    };
 })();

@@ -461,17 +461,6 @@ body:has(> #sigaa-redesign) {
 }
 #sr-theme-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.15); }
 #sr-theme-btn svg { width: 14px; height: 14px; }
-/* Floating restore button (quando o redesign está oculto) */
-#sr-toggle-float {
-    position: fixed; bottom: 20px; left: 20px; z-index: 1000001;
-    background: #07111F; color: rgba(255,255,255,0.7); border: 1px solid rgba(26,79,160,0.35); border-radius: 10px;
-    padding: 9px 14px; font-size: 12px; font-weight: 500; cursor: pointer;
-    font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
-    display: flex; align-items: center; gap: 7px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4); transition: all 0.2s;
-}
-#sr-toggle-float:hover { background: #1a4fa0; color: #fff; }
-
 /* ===== SCROLLBAR — LIGHT ===== */
 #sigaa-redesign ::-webkit-scrollbar { width: 5px; height: 5px; }
 #sigaa-redesign ::-webkit-scrollbar-track { background: transparent; }

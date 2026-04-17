@@ -88,7 +88,8 @@
             '</div>' +
             '<div class="sr-sidebar-footer">' +
             '<div class="sr-footer-actions">' +
-            '<button id="sr-theme-btn-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Escuro</button>' +
+            '<button id="sr-toggle-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg> UI Original</button>' +
+            '<button id="sr-theme-btn-inner" title="Alternar tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>' +
             '</div>' +
             '<a href="#" id="sr-logout-btn-inner" class="sr-logout">' + I.logout + ' Sair</a>' +
             '</div>';
@@ -119,9 +120,7 @@
         if (savedThemeInner === 'dark') document.body.setAttribute('data-sr-theme', 'dark');
         function updateThemeIconInner() {
             var isDark = document.body.getAttribute('data-sr-theme') === 'dark';
-            if (themeBtnInner) themeBtnInner.innerHTML = isDark
-                ? sunSvgInner + ' Claro'
-                : moonSvgInner + ' Escuro';
+            if (themeBtnInner) themeBtnInner.innerHTML = isDark ? sunSvgInner : moonSvgInner;
         }
         updateThemeIconInner();
         if (themeBtnInner) {
@@ -135,6 +134,14 @@
                     localStorage.setItem('sr-theme', 'dark');
                 }
                 updateThemeIconInner();
+            });
+        }
+
+        // ---- UI Original toggle (desliga a extensão nesta origem) ----
+        var toggleInner = document.getElementById('sr-toggle-inner');
+        if (toggleInner) {
+            toggleInner.addEventListener('click', function () {
+                S.disableUI();
             });
         }
 

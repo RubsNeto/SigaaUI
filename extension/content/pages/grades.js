@@ -130,11 +130,8 @@
         toggle.innerHTML = grIcons.star + ' UI Original';
         document.body.appendChild(toggle);
 
-        var active = true;
         toggle.addEventListener('click', function () {
-            active = !active;
-            root.style.display = active ? 'flex' : 'none';
-            toggle.innerHTML = active ? grIcons.star + ' UI Original' : grIcons.star + ' UI Moderna';
+            S.disableUI();
         });
     }
 
