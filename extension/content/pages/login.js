@@ -19,7 +19,7 @@
         if (originalForm) {
             var hiddens = originalForm.querySelectorAll('input[type="hidden"]');
             hiddens.forEach(function (inp) {
-                hiddenInputsHTML += '<input type="hidden" name="' + inp.name + '" value="' + (inp.value || '') + '">';
+                hiddenInputsHTML += '<input type="hidden" name="' + S.escapeAttr(inp.name) + '" value="' + S.escapeAttr(inp.value || '') + '">';
             });
         }
         if (!isSSO && !hiddenInputsHTML.includes('width')) {
@@ -55,7 +55,7 @@
         if (isSSO) {
             var origGov = document.querySelector('.govbr-button');
             var govUrl = origGov ? origGov.href : 'clientredirect?client_name=GovBR&service=https://sigaa.sistemas.ufg.br/sigaa/verTelaLogin.do&locale=pt_BR';
-            govbrBtn = '<div style="margin-top: 12px"><a href="' + govUrl + '" class="lr-govbr">' +
+            govbrBtn = '<div style="margin-top: 12px"><a href="' + S.escapeAttr(govUrl) + '" class="lr-govbr">' +
                 '<img src="' + S.GOVBR_BASE64 + '" alt="gov.br" style="height:20px;margin-right:8px">' +
                 'Entrar com Gov.br</a></div>';
         }
@@ -93,7 +93,7 @@
             '<h1 class="lr-title">Entrar no SIGAA</h1>' +
             '<p class="lr-subtitle">' + inst.desc + '</p>' +
             '</div>' +
-            '<form name="loginFormNew" method="post" action="' + formAction + '">' +
+            '<form name="loginFormNew" method="post" action="' + S.escapeAttr(formAction) + '">' +
             hiddenInputsHTML +
             '<div class="lr-field">' +
             '<label class="lr-label">Usuário' + (isSSO ? ' ou CPF' : '') + '</label>' +
@@ -115,7 +115,7 @@
             systemsHTML +
             '</div>' +
             '<div class="lr-footer">' +
-            'SIGAA | <a href="https://' + inst.domain + '" target="_blank">' + inst.name + '</a>' +
+            'SIGAA | <a href="https://' + (inst.domain || (inst.id + '.edu.br')) + '" target="_blank">' + inst.name + '</a>' +
             '</div>';
 
         document.body.appendChild(root);

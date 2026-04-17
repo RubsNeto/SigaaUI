@@ -42,9 +42,10 @@
         }
 
         // ---- Collect operation buttons ----
+        // Keep reference to original <a> instead of copying href/onclick (avoids XSS + CSP issues)
         var opButtons = [];
         conteudo.querySelectorAll('td.operacao a').forEach(function (a) {
-            opButtons.push({ text: a.textContent.trim().replace(/\s+/g, ' '), href: a.getAttribute('href') || '#', onclick: a.getAttribute('onclick') || '' });
+            opButtons.push({ text: a.textContent.trim().replace(/\s+/g, ' '), el: a });
         });
 
         // ---- Save the original form for submission ----
@@ -73,7 +74,7 @@
                         var txt = td.textContent.trim();
                         if (/^[A-Z]{2,4}\d{3,5}$/.test(txt)) code = txt;
                         var eqLink = td.querySelector('a.linkExpressoes, a[onclick*="equivalen"]');
-                        if (eqLink) equiv = { href: eqLink.getAttribute('href') || '#', onclick: eqLink.getAttribute('onclick') || '' };
+                        if (eqLink) equiv = { el: eqLink };
                     });
                     var allText = tr.textContent.trim();
                     if (/OPTATIVA/i.test(allText)) type = 'opt';
@@ -183,21 +184,21 @@
 
         // Info cards
         headerHTML += '<div class="tc-info-row">' +
-            '<div class="tc-info-card"><div class="tc-info-icon ci-user">' + svgUser + '</div><div><div class="tc-info-label">Discente</div><div class="tc-info-value">' + (studentName || 'Aluno') + '</div></div></div>' +
-            '<div class="tc-info-card"><div class="tc-info-icon ci-book">' + svgBook + '</div><div><div class="tc-info-label">Matriz Curricular</div><div class="tc-info-value">' + (course || '\u2014') + '</div></div></div>' +
-            '<div class="tc-info-card"><div class="tc-info-icon ci-star">' + svgStar + '</div><div><div class="tc-info-label">Prioridade</div><div class="tc-info-value accent">' + (priority || '\u2014') + '</div></div></div>' +
+            '<div class="tc-info-card"><div class="tc-info-icon ci-user">' + svgUser + '</div><div><div class="tc-info-label">Discente</div><div class="tc-info-value">' + S.escapeHtml(studentName || 'Aluno') + '</div></div></div>' +
+            '<div class="tc-info-card"><div class="tc-info-icon ci-book">' + svgBook + '</div><div><div class="tc-info-label">Matriz Curricular</div><div class="tc-info-value">' + S.escapeHtml(course || '\u2014') + '</div></div></div>' +
+            '<div class="tc-info-card"><div class="tc-info-icon ci-star">' + svgStar + '</div><div><div class="tc-info-label">Prioridade</div><div class="tc-info-value accent">' + S.escapeHtml(priority || '\u2014') + '</div></div></div>' +
             '</div>';
 
-        // Actions bar
+        // Actions bar — use data-op-idx + handler JS (no inline onclick)
         headerHTML += '<div class="tc-actions">';
-        opButtons.forEach(function (btn) {
+        opButtons.forEach(function (btn, i) {
             var txt = btn.text.toLowerCase();
             var icon = btnIcons['ajuda'];
             if (txt.indexOf('ajuda') !== -1) icon = btnIcons['ajuda'];
             else if (txt.indexOf('equivalente') !== -1) icon = btnIcons['equivalente'];
             else if (txt.indexOf('buscar') !== -1) icon = btnIcons['buscar'];
             else if (txt.indexOf('ver') !== -1 || txt.indexOf('selecionada') !== -1) icon = btnIcons['ver'];
-            headerHTML += '<a class="tc-action" href="' + btn.href + '" onclick="' + btn.onclick.replace(/"/g, '&quot;') + '">' + icon + btn.text + '</a>';
+            headerHTML += '<a class="tc-action tc-op-btn" href="#" data-op-idx="' + i + '">' + icon + S.escapeHtml(btn.text) + '</a>';
         });
         headerHTML += '</div>';
 
@@ -206,12 +207,14 @@
         var colors = ['c1', 'c2', 'c3', 'c4', 'c5'];
         var periodsHTML = '';
 
+        // Collect equivalente links so we can bind them by index
+        var equivLinks = [];
         periods.forEach(function (period, pIdx) {
             var discCount = period.disciplines.length;
             periodsHTML += '<div class="tc-period-group">';
             periodsHTML += '<div class="tc-period-header">';
             periodsHTML += '<input type="checkbox" class="tc-check-period" id="tc-p' + pIdx + '" data-period="' + pIdx + '"/>';
-            periodsHTML += '<label for="tc-p' + pIdx + '">' + period.label + '</label>';
+            periodsHTML += '<label for="tc-p' + pIdx + '">' + S.escapeHtml(period.label) + '</label>';
             periodsHTML += '<span class="tc-period-count">' + discCount + ' disciplina' + (discCount !== 1 ? 's' : '') + '</span>';
             periodsHTML += '</div>';
 
@@ -224,15 +227,17 @@
                 periodsHTML += '<div class="tc-disc ' + statusClass + '">';
                 periodsHTML += '<div class="tc-disc-status">' + statusSvg + '</div>';
                 periodsHTML += '<div class="tc-disc-info">';
-                periodsHTML += '<span class="tc-disc-code">' + disc.code + '</span>';
-                periodsHTML += '<span class="tc-disc-name">' + disc.name + '</span>';
+                periodsHTML += '<span class="tc-disc-code">' + S.escapeHtml(disc.code) + '</span>';
+                periodsHTML += '<span class="tc-disc-name">' + S.escapeHtml(disc.name) + '</span>';
                 periodsHTML += '<span class="tc-badge ' + badgeClass + '">' + badgeText + '</span>';
-                if (disc.equiv) {
-                    periodsHTML += '<a href="' + disc.equiv.href + '" onclick="' + (disc.equiv.onclick || '').replace(/"/g, '&quot;') + '" class="tc-equiv">Equivalentes</a>';
+                if (disc.equiv && disc.equiv.el) {
+                    var eqIdx = equivLinks.length;
+                    equivLinks.push(disc.equiv.el);
+                    periodsHTML += '<a href="#" data-eq-idx="' + eqIdx + '" class="tc-equiv">Equivalentes</a>';
                 }
                 periodsHTML += '</div>';
                 if (disc.blocked) {
-                    periodsHTML += '<span class="tc-disc-blocked">' + disc.blockMsg + '</span>';
+                    periodsHTML += '<span class="tc-disc-blocked">' + S.escapeHtml(disc.blockMsg) + '</span>';
                 }
                 periodsHTML += '</div>';
 
@@ -240,20 +245,20 @@
                     var c = colors[colorIdx % 5];
                     colorIdx++;
                     periodsHTML += '<div class="tc-turma">';
-                    periodsHTML += '<input type="checkbox" name="selecaoTurmas" class="tc-check" value="' + turma.checkValue + '"/>';
-                    periodsHTML += '<div class="tc-turma-badge ' + c + '">' + turma.letter + '</div>';
+                    periodsHTML += '<input type="checkbox" name="selecaoTurmas" class="tc-check" value="' + S.escapeAttr(turma.checkValue) + '"/>';
+                    periodsHTML += '<div class="tc-turma-badge ' + c + '">' + S.escapeHtml(turma.letter) + '</div>';
                     periodsHTML += '<div class="tc-turma-info">';
-                    periodsHTML += '<div class="tc-turma-name">' + turma.name;
-                    if (turma.subTitle) periodsHTML += ' <span class="tc-turma-sub">' + turma.subTitle + '</span>';
+                    periodsHTML += '<div class="tc-turma-name">' + S.escapeHtml(turma.name);
+                    if (turma.subTitle) periodsHTML += ' <span class="tc-turma-sub">' + S.escapeHtml(turma.subTitle) + '</span>';
                     periodsHTML += '</div>';
-                    periodsHTML += '<div class="tc-turma-prof' + (turma.profDim ? ' dim' : '') + '">' + turma.prof + '</div>';
+                    periodsHTML += '<div class="tc-turma-prof' + (turma.profDim ? ' dim' : '') + '">' + S.escapeHtml(turma.prof) + '</div>';
                     periodsHTML += '</div>';
                     periodsHTML += '<div class="tc-turma-meta">';
                     if (turma.schedule) {
-                        periodsHTML += '<div class="tc-turma-tag">' + svgClock + turma.schedule + '</div>';
+                        periodsHTML += '<div class="tc-turma-tag">' + svgClock + S.escapeHtml(turma.schedule) + '</div>';
                     }
                     if (turma.local) {
-                        periodsHTML += '<div class="tc-turma-tag' + (turma.localTbd ? ' loc-tbd' : '') + '">' + svgPin + turma.local + '</div>';
+                        periodsHTML += '<div class="tc-turma-tag' + (turma.localTbd ? ' loc-tbd' : '') + '">' + svgPin + S.escapeHtml(turma.local) + '</div>';
                     }
                     periodsHTML += '</div>';
                     periodsHTML += '<button class="tc-turma-zoom" title="Ver detalhes">' + svgZoom + '</button>';
@@ -327,6 +332,24 @@
         }
         document.querySelectorAll('.tc-check').forEach(function (cb) {
             cb.addEventListener('change', updateCount);
+        });
+
+        // ---- Wire up operation buttons (click original SIGAA <a>) ----
+        document.querySelectorAll('.tc-op-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var idx = parseInt(btn.getAttribute('data-op-idx'), 10);
+                if (opButtons[idx] && opButtons[idx].el) opButtons[idx].el.click();
+            });
+        });
+
+        // ---- Wire up equivalente links ----
+        document.querySelectorAll('.tc-equiv').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var idx = parseInt(link.getAttribute('data-eq-idx'), 10);
+                if (equivLinks[idx]) equivLinks[idx].click();
+            });
         });
 
         // ---- Inject CSS ----

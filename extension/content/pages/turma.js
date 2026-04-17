@@ -43,18 +43,18 @@
                 if (isSelected) hasActive = true;
 
                 if (linkEl) {
-                    var originalId = linkEl.id || ('menu-link-' + Math.random().toString(36).substr(2));
+                    var originalId = linkEl.id || ('menu-link-' + Math.random().toString(36).slice(2));
                     linkEl.id = originalId;
 
                     var activeClass = isSelected ? ' active' : '';
-                    itemsHtml += '<a class="sr-menu-item turma-menu-item' + activeClass + '" href="#" data-ref="' + originalId + '"><span>' + name + '</span></a>';
+                    itemsHtml += '<a class="sr-menu-item turma-menu-item' + activeClass + '" href="#" data-ref="' + S.escapeAttr(originalId) + '"><span>' + S.escapeHtml(name) + '</span></a>';
                 }
             });
 
             var openClass = hasActive ? ' open' : '';
 
             menuHtml += '<div class="turma-accordion-section' + openClass + '">';
-            menuHtml += '<button class="sr-menu-item turma-accordion-header">' + icon + ' <span>' + title + '</span>' + chevronRightHtml + '</button>';
+            menuHtml += '<button class="sr-menu-item turma-accordion-header">' + icon + ' <span>' + S.escapeHtml(title) + '</span>' + chevronRightHtml + '</button>';
             menuHtml += '<nav class="sr-menu turma-accordion-content">' + itemsHtml + '</nav>';
             menuHtml += '</div>';
         });
@@ -76,9 +76,9 @@
         var backBtnHtml = '';
         var backBtnEl = document.querySelector('#formAva a[href*="portais/discente/discente.jsf"]');
         if (backBtnEl) {
-            var backId = backBtnEl.id || ('menu-back-' + Math.random().toString(36).substr(2));
+            var backId = backBtnEl.id || ('menu-back-' + Math.random().toString(36).slice(2));
             backBtnEl.id = backId;
-            backBtnHtml += '<a class="sr-menu-item turma-menu-item" href="#" data-ref="' + backId + '" style="margin-bottom: 20px;">' + I.layout + ' Voltar ao Portal</a>';
+            backBtnHtml += '<a class="sr-menu-item turma-menu-item" href="#" data-ref="' + S.escapeAttr(backId) + '" style="margin-bottom: 20px;">' + I.layout + ' Voltar ao Portal</a>';
         } else {
             backBtnHtml += '<a class="sr-menu-item turma-menu-item" href="/sigaa/portais/discente/discente.jsf" style="margin-bottom: 20px;">' + I.layout + ' Voltar ao Portal</a>';
         }
@@ -135,7 +135,7 @@
         if (pageTitle && conteudoNode) {
             var titleWrapper = document.createElement('h2');
             titleWrapper.className = 'turma-main-title';
-            titleWrapper.innerHTML = pageTitle.innerHTML;
+            titleWrapper.textContent = pageTitle.textContent;
             conteudoNode.insertBefore(titleWrapper, conteudoNode.firstChild);
         }
 

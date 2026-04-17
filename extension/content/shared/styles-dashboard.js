@@ -11,7 +11,24 @@
     // DASHBOARD CSS (páginas: dashboard)
     // ========================================
     S.Styles.DASHBOARD_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+/* Hide native SIGAA content — our redesign replaces it entirely.
+   display:none keeps the DOM/forms accessible for programmatic submit (navigateByText). */
+body > #container,
+body > #cabecalho,
+body > #rodape,
+body > #painel-usuario,
+body > #menu-dropdown,
+body > #barra-brasil,
+body > .painel-menu,
+body > .aviso-ufj { display: none !important; }
+
+/* Also ensure body/html don't scroll behind our fixed overlay */
+html:has(> body > #sigaa-redesign),
+body:has(> #sigaa-redesign) {
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
 #sigaa-redesign {
     position: fixed !important;
@@ -391,6 +408,27 @@
 .sr-item-icon { color: #1a4fa0; margin-top: 0; flex-shrink: 0; }
 .sr-item-icon.done { color: #10b981; }
 .sr-item-icon.pending { color: #f59e0b; }
+.sr-item-icon.urgent { color: #ef4444; }
+.sr-item-icon.expired { color: #94a3b8; }
+
+/* Atividade head: title + time badge in one row */
+.sr-atividade-head { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.sr-atividade-head .sr-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Time-remaining badge */
+.sr-time-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+    white-space: nowrap; flex-shrink: 0; letter-spacing: 0.2px;
+}
+.sr-time-badge.pending { background: #fef3c7; color: #b45309; }
+.sr-time-badge.urgent { background: #fee2e2; color: #b91c1c; }
+.sr-time-badge.done { background: #d1fae5; color: #065f46; }
+.sr-time-badge.expired { background: #e2e8f0; color: #64748b; }
+
+/* Expired row: muted + strikethrough title */
+.sr-atividade-row.expired .sr-item-title { color: #94a3b8; text-decoration: line-through; }
+.sr-atividade-row.expired .sr-item-sub { color: #94a3b8; }
+.sr-atividade-row.expired { opacity: 0.72; }
 /* Card sub-text and description */
 .sr-card-sub { font-size: 11px; color: #64748b; }
 .sr-card-desc { font-size: 11px; color: #94a3b8; margin-bottom: 16px; }
@@ -508,6 +546,18 @@
 #sigaa-redesign[data-sr-theme="dark"] .sr-item-icon { color: #999999; }
 #sigaa-redesign[data-sr-theme="dark"] .sr-item-icon.done { color: #4ade80; }
 #sigaa-redesign[data-sr-theme="dark"] .sr-item-icon.pending { color: #fbbf24; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-item-icon.urgent { color: #f87171; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-item-icon.expired { color: #64748b; }
+
+/* Time badge dark */
+#sigaa-redesign[data-sr-theme="dark"] .sr-time-badge.pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-time-badge.urgent { background: rgba(248,113,113,0.15); color: #f87171; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-time-badge.done { background: rgba(74,222,128,0.15); color: #4ade80; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-time-badge.expired { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+/* Expired row dark */
+#sigaa-redesign[data-sr-theme="dark"] .sr-atividade-row.expired .sr-item-title { color: #64748b; }
+#sigaa-redesign[data-sr-theme="dark"] .sr-atividade-row.expired .sr-item-sub { color: #64748b; }
 
 /* Table */
 #sigaa-redesign[data-sr-theme="dark"] .sr-table th { background: #2e2e31; color: #888888; }

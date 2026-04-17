@@ -16,18 +16,25 @@
         var viewState = document.getElementById('javax.faces.ViewState')?.value || '';
 
         // Extract announcements
+        // Sanitize: remove <script>/<style> tags from aviso HTML before reinjection.
+        function sanitizeAvisoHtml(html) {
+            return String(html)
+                .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+                .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+                .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+        }
         var avisos = document.querySelectorAll('.aviso-ufj');
         var contentHTML = '';
         avisos.forEach(function (aviso) {
-            contentHTML += aviso.innerHTML;
+            contentHTML += sanitizeAvisoHtml(aviso.innerHTML);
         });
 
         // If no .aviso-ufj, try to get content from form
         if (!contentHTML) {
             var h2s = document.querySelectorAll('#conteudo h2');
-            h2s.forEach(function (h2) { contentHTML += '<h2>' + h2.textContent + '</h2>'; });
+            h2s.forEach(function (h2) { contentHTML += '<h2>' + S.escapeHtml(h2.textContent) + '</h2>'; });
             var divs = document.querySelectorAll('#conteudo div');
-            divs.forEach(function (d) { if (!d.closest('.aviso-ufj')) contentHTML += d.outerHTML; });
+            divs.forEach(function (d) { if (!d.closest('.aviso-ufj')) contentHTML += sanitizeAvisoHtml(d.outerHTML); });
         }
 
         // Extract button names
@@ -68,16 +75,16 @@
             contentHTML +
             '</div>' +
             '<div class="nr-actions">' +
-            '<form method="post" action="' + formAction + '" style="display:contents;">' +
-            '<input type="hidden" name="' + formName + '" value="' + formName + '">' +
-            '<input type="hidden" name="javax.faces.ViewState" value="' + viewState + '">' +
-            (dismissName ? '<button type="submit" name="' + dismissName + '" class="nr-btn nr-btn-secondary">Não exibir novamente</button>' : '') +
-            (continueName ? '<button type="submit" name="' + continueName + '" class="nr-btn nr-btn-primary">Continuar</button>' : '') +
+            '<form method="post" action="' + S.escapeAttr(formAction) + '" style="display:contents;">' +
+            '<input type="hidden" name="' + S.escapeAttr(formName) + '" value="' + S.escapeAttr(formName) + '">' +
+            '<input type="hidden" name="javax.faces.ViewState" value="' + S.escapeAttr(viewState) + '">' +
+            (dismissName ? '<button type="submit" name="' + S.escapeAttr(dismissName) + '" class="nr-btn nr-btn-secondary">Não exibir novamente</button>' : '') +
+            (continueName ? '<button type="submit" name="' + S.escapeAttr(continueName) + '" class="nr-btn nr-btn-primary">Continuar</button>' : '') +
             '</form>' +
             '</div>' +
             '</div>' +
             '<div class="nr-footer">' +
-            'SIGAA | <a href="https://' + inst.id + '.edu.br" target="_blank">' + inst.name + '</a> • Secretaria de Tecnologia da Informação' +
+            'SIGAA | <a href="https://' + (inst.domain || (inst.id + '.edu.br')) + '" target="_blank">' + inst.name + '</a> • Secretaria de Tecnologia da Informação' +
             '</div>';
 
         document.body.appendChild(root);

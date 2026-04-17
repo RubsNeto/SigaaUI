@@ -10,8 +10,10 @@
 
     function buildInner() {
         // ---- Auto-skip matrícula instructions page ----
+        // Restrict to actual matrícula URLs to avoid false positives on other "instruções" pages
+        var isMatriculaUrl = /matriculaGraduacao|matricula\.do|telaInstrucoes/i.test(location.pathname + location.search);
         var instrTitle = document.querySelector('#conteudo h3');
-        if (instrTitle && /instruções/i.test(instrTitle.textContent)) {
+        if (isMatriculaUrl && instrTitle && /instruções/i.test(instrTitle.textContent)) {
             var form = document.querySelector('#conteudo form, form[id*="matricula"]');
             if (form) {
                 var btn = form.querySelector('input[type="submit"], button[type="submit"]');
@@ -90,12 +92,6 @@
             '</div>' +
             '<a href="#" id="sr-logout-btn-inner" class="sr-logout">' + I.logout + ' Sair</a>' +
             '</div>';
-
-        var instLogoSrc = (_inst && _inst.logoUrl) ? _inst.logoUrl : null;
-        var sidebarLogoHtml = instLogoSrc
-            ? '<img src="' + instLogoSrc + '" alt="' + (_inst.name || '') + '">'
-            : I.graduation;
-        sidebar.querySelector('.sr-logo').innerHTML = sidebarLogoHtml;
 
         document.body.insertBefore(sidebar, document.body.firstChild);
 

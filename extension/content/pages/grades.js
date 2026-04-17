@@ -5,6 +5,7 @@
 (function () {
     'use strict';
     var S = window.SigaaUI = window.SigaaUI || {};
+    var I = S.Icons;
 
     function buildGrades() {
         // Extract student info
@@ -70,7 +71,7 @@
             return '<div class="gr-semester">' +
                 '<div class="gr-semester-header">' +
                 '<div class="gr-semester-icon">' + grIcons.calendar + '</div>' +
-                '<div class="gr-semester-name">Semestre ' + sem.name + '</div>' +
+                '<div class="gr-semester-name">Semestre ' + S.escapeHtml(sem.name) + '</div>' +
                 '</div>' +
                 '<table class="gr-table">' +
                 '<thead><tr>' +
@@ -78,10 +79,18 @@
                 '</tr></thead>' +
                 '<tbody>' +
                 sem.subjects.map(function (s) {
-                    var r = parseFloat(s.resultado.replace(',', '.')) || 0;
+                    var r = parseFloat(String(s.resultado).replace(',', '.')) || 0;
                     var gc = r >= 7 ? 'high' : r >= 6 ? 'medium' : 'low';
                     var sc = s.situacao.includes('APROVADO') ? 'approved' : 'failed';
-                    return '<tr><td class="code">' + s.code + '</td><td class="subject">' + s.name + '</td><td class="grade ' + gc + '">' + (s.notas[0] || '--') + '</td><td class="grade ' + gc + '">' + (s.notas[1] || '--') + '</td><td class="grade ' + gc + '">' + s.resultado + '</td><td class="absences">' + s.faltas + '</td><td><span class="gr-status ' + sc + '">' + s.situacao + '</span></td></tr>';
+                    return '<tr>' +
+                        '<td class="code">' + S.escapeHtml(s.code) + '</td>' +
+                        '<td class="subject">' + S.escapeHtml(s.name) + '</td>' +
+                        '<td class="grade ' + gc + '">' + S.escapeHtml(s.notas[0] || '--') + '</td>' +
+                        '<td class="grade ' + gc + '">' + S.escapeHtml(s.notas[1] || '--') + '</td>' +
+                        '<td class="grade ' + gc + '">' + S.escapeHtml(s.resultado) + '</td>' +
+                        '<td class="absences">' + S.escapeHtml(s.faltas) + '</td>' +
+                        '<td><span class="gr-status ' + sc + '">' + S.escapeHtml(s.situacao) + '</span></td>' +
+                        '</tr>';
                 }).join('') +
                 '</tbody>' +
                 '</table>' +
@@ -107,8 +116,8 @@
             '</aside>' +
             '<main class="gr-main">' +
             '<div class="gr-header">' +
-            '<div class="gr-student-name">' + student.name.split(' - ')[0] + '</div>' +
-            '<div class="gr-student-course">' + student.course + '</div>' +
+            '<div class="gr-student-name">' + S.escapeHtml(student.name.split(' - ')[0]) + '</div>' +
+            '<div class="gr-student-course">' + S.escapeHtml(student.course) + '</div>' +
             '</div>' +
             '<div class="gr-title">' + grIcons.grades + ' Relatório de Notas</div>' +
             semestersHTML +
@@ -122,11 +131,11 @@
         document.body.appendChild(toggle);
 
         var active = true;
-        toggle.onclick = function () {
+        toggle.addEventListener('click', function () {
             active = !active;
             root.style.display = active ? 'flex' : 'none';
             toggle.innerHTML = active ? grIcons.star + ' UI Original' : grIcons.star + ' UI Moderna';
-        };
+        });
     }
 
     S.registerPage(S.PAGE_TYPES.GRADES, buildGrades);

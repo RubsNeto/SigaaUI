@@ -10,8 +10,6 @@
     // INNER PAGES CSS (sidebar + conteudo styling)
     // ========================================
     S.Styles.INNER_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-
 html { zoom: 1.1; }
 
 /* ===== SCROLLBAR — LIGHT ===== */

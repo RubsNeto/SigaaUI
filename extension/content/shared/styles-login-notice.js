@@ -10,8 +10,6 @@
     // LOGIN CSS
     // ========================================
     S.Styles.LOGIN_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-
 #login-redesign {
     position: fixed; inset: 0; z-index: 999999;
     font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;
@@ -213,8 +211,6 @@
     // NOTICE CSS
     // ========================================
     S.Styles.NOTICE_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-
 #notice-redesign {
     position: fixed; inset: 0; z-index: 999999;
     font-family: 'Montserrat', 'Gotham', system-ui, sans-serif;

@@ -34,7 +34,7 @@
 </p>
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-3.0.0-0891b2?style=flat-square" />
+  <img alt="Version" src="https://img.shields.io/badge/version-3.2.0-0891b2?style=flat-square" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" />
   <img alt="Stars" src="https://img.shields.io/github/stars/RubsNeto/SigaaUI?style=flat-square" />
   <img alt="Last commit" src="https://img.shields.io/github/last-commit/RubsNeto/SigaaUI?style=flat-square" />

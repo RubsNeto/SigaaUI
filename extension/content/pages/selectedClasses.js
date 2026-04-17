@@ -82,7 +82,7 @@
 
         // Calculate totals
         var totalHoras = 0;
-        turmas.forEach(function (t) { totalHoras += parseInt(t.ch) || 0; });
+        turmas.forEach(function (t) { totalHoras += parseInt(t.ch, 10) || 0; });
 
         // ---- Preserve original forms for JSF submission ----
         var wrapperMenu = conteudo.querySelector('#wrapper-menu-matricula');
@@ -153,8 +153,8 @@
                     var c = data[ci];
                     if (c && c.code) {
                         var cls = codeColors[c.code] || '';
-                        var ttl = c.title ? ' title="' + c.title.replace(/"/g, '&quot;') + '"' : '';
-                        schedHTML += '<td class="' + cls + '"' + ttl + '>' + c.code + '</td>';
+                        var ttl = c.title ? ' title="' + S.escapeAttr(c.title) + '"' : '';
+                        schedHTML += '<td class="' + cls + '"' + ttl + '>' + S.escapeHtml(c.code) + '</td>';
                     } else {
                         schedHTML += '<td class="e">\u2014</td>';
                     }
@@ -167,14 +167,16 @@
         // ---- Build legend ----
         var legendHTML = '<div class="mat-legend">';
         turmas.forEach(function (t, idx) {
-            legendHTML += '<div class="mat-legend-item"><div class="mat-legend-dot ld' + ((idx % 5) + 1) + '"></div>' + t.code + ' \u2014 ' + t.name + '</div>';
+            legendHTML += '<div class="mat-legend-item"><div class="mat-legend-dot ld' + ((idx % 5) + 1) + '"></div>' + S.escapeHtml(t.code) + ' \u2014 ' + S.escapeHtml(t.name) + '</div>';
         });
         legendHTML += '</div>';
 
         // ---- Build action buttons ----
+        // Keep a reference to the original <a> to trigger a real click instead of
+        // copying raw onclick into innerHTML (avoids CSP issues + XSS via attribute).
         var opButtons = [];
         conteudo.querySelectorAll('td.operacao a').forEach(function (a) {
-            opButtons.push({ text: a.textContent.trim(), href: a.getAttribute('href') || '#', onclick: a.getAttribute('onclick') || '' });
+            opButtons.push({ text: a.textContent.trim(), el: a });
         });
 
         // ---- SVG icons ----
@@ -189,27 +191,27 @@
         var turmaHTML = '';
         turmas.forEach(function (t, idx) {
             turmaHTML += '<div class="mat-turma" data-idx="' + idx + '">' +
-                '<div class="mat-badge c' + ((idx % 5) + 1) + '">' + t.letter + '</div>' +
+                '<div class="mat-badge c' + ((idx % 5) + 1) + '">' + S.escapeHtml(t.letter) + '</div>' +
                 '<div class="mat-turma-info">' +
-                '<div class="mat-turma-code">' + t.code + ' \u2014 Turma ' + t.letter + '</div>' +
-                '<div class="mat-turma-name">' + t.name + '</div>' +
-                '<div class="mat-turma-prof">' + (t.prof || 'A Definir') + '</div>' +
+                '<div class="mat-turma-code">' + S.escapeHtml(t.code) + ' \u2014 Turma ' + S.escapeHtml(t.letter) + '</div>' +
+                '<div class="mat-turma-name">' + S.escapeHtml(t.name) + '</div>' +
+                '<div class="mat-turma-prof">' + S.escapeHtml(t.prof || 'A Definir') + '</div>' +
                 '</div>' +
                 '<div class="mat-turma-stats">' +
-                '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + t.ch + '</div><div class="mat-turma-stat-lbl">CH</div></div>' +
-                '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + t.pos + '</div><div class="mat-turma-stat-lbl">Pos</div></div>' +
-                '<div class="mat-turma-stat"><div class="mat-turma-stat-val green">' + t.vagas + '</div><div class="mat-turma-stat-lbl">Vagas</div></div>' +
+                '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + S.escapeHtml(t.ch) + '</div><div class="mat-turma-stat-lbl">CH</div></div>' +
+                '<div class="mat-turma-stat"><div class="mat-turma-stat-val">' + S.escapeHtml(t.pos) + '</div><div class="mat-turma-stat-lbl">Pos</div></div>' +
+                '<div class="mat-turma-stat"><div class="mat-turma-stat-val green">' + S.escapeHtml(t.vagas) + '</div><div class="mat-turma-stat-lbl">Vagas</div></div>' +
                 '</div>' +
                 '<button class="mat-turma-del" data-idx="' + idx + '" title="Remover">' + svgDel + '</button>' +
                 '</div>';
         });
 
-        // Build actions HTML
+        // Build actions HTML — use data-idx + real click on original <a> (no inline onclick)
         var actionsHTML = '<div class="mat-actions">';
-        opButtons.forEach(function (btn) {
-            actionsHTML += '<a class="mat-action-btn" href="' + btn.href + '" onclick="' + btn.onclick.replace(/"/g, '&quot;') + '">' +
+        opButtons.forEach(function (btn, i) {
+            actionsHTML += '<a class="mat-action-btn mat-op-btn" href="#" data-op-idx="' + i + '">' +
                 '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
-                btn.text + '</a>';
+                S.escapeHtml(btn.text) + '</a>';
         });
         actionsHTML += '<a class="mat-action-btn mat-action-cancel" href="#" id="mat-btn-sair">' + svgX + ' Sair sem salvar</a>';
         actionsHTML += '<a class="mat-action-btn mat-action-confirm" href="#" id="mat-btn-confirm">' + svgCheck + ' Confirmar Solicitação</a>';
@@ -230,12 +232,12 @@
             '<div class="mat-alert">' +
             '<div class="mat-alert-icon">' + svgWarn + '</div>' +
             '<div><b>Para efetivar sua solicitação é necessário pressionar "Confirmar Solicitação".</b> Após a confirmação será possível imprimir o comprovante.</div>' +
-            '<button class="mat-alert-close" onclick="this.parentElement.style.display=\'none\'">✕</button>' +
+            '<button class="mat-alert-close" type="button" id="mat-alert-close">✕</button>' +
             '</div>' +
             '<div class="mat-chips">' +
-            '<div class="mat-chip"><div class="mat-chip-icon ci-user">' + I.user + '</div><div><div class="mat-chip-label">Discente</div><div class="mat-chip-value">' + (studentName || 'Aluno') + '</div></div></div>' +
-            '<div class="mat-chip"><div class="mat-chip-icon ci-book">' + I.book + '</div><div><div class="mat-chip-label">Curso</div><div class="mat-chip-value">' + (course || '\u2014') + '</div></div></div>' +
-            '<div class="mat-chip"><div class="mat-chip-icon ci-star">' + I.star + '</div><div><div class="mat-chip-label">Prioridade</div><div class="mat-chip-value"><span class="highlight">' + (priority || '\u2014') + '</span></div></div></div>' +
+            '<div class="mat-chip"><div class="mat-chip-icon ci-user">' + I.user + '</div><div><div class="mat-chip-label">Discente</div><div class="mat-chip-value">' + S.escapeHtml(studentName || 'Aluno') + '</div></div></div>' +
+            '<div class="mat-chip"><div class="mat-chip-icon ci-book">' + I.book + '</div><div><div class="mat-chip-label">Curso</div><div class="mat-chip-value">' + S.escapeHtml(course || '\u2014') + '</div></div></div>' +
+            '<div class="mat-chip"><div class="mat-chip-icon ci-star">' + I.star + '</div><div><div class="mat-chip-label">Prioridade</div><div class="mat-chip-value"><span class="highlight">' + S.escapeHtml(priority || '\u2014') + '</span></div></div></div>' +
             '<div class="mat-chip"><div class="mat-chip-icon ci-clock">' + I.clock + '</div><div><div class="mat-chip-label">Total</div><div class="mat-chip-value"><span class="green">' + totalHoras + ' horas</span> \u00b7 ' + turmas.length + ' turmas</div></div></div>' +
             '</div>' +
             actionsHTML +
@@ -286,10 +288,28 @@
         // Wire up delete buttons to original remove forms
         conteudo.querySelectorAll('.mat-turma-del').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var idx = parseInt(btn.getAttribute('data-idx'));
+                var idx = parseInt(btn.getAttribute('data-idx'), 10);
                 var allDelLinks = hiddenDiv.querySelectorAll('a[title="Remover Turma"]');
                 if (allDelLinks[idx]) allDelLinks[idx].click();
             });
         });
+
+        // Wire up operation buttons (Ajuda, Equivalentes, etc) — click original <a>
+        conteudo.querySelectorAll('.mat-op-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var idx = parseInt(btn.getAttribute('data-op-idx'), 10);
+                if (opButtons[idx] && opButtons[idx].el) opButtons[idx].el.click();
+            });
+        });
+
+        // Wire up alert close button
+        var alertClose = document.getElementById('mat-alert-close');
+        if (alertClose) {
+            alertClose.addEventListener('click', function () {
+                var alertBox = alertClose.closest('.mat-alert');
+                if (alertBox) alertBox.style.display = 'none';
+            });
+        }
     };
 })();

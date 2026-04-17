@@ -1,0 +1,22 @@
+# Pacotes gerados para publicação
+*.zip
+*.rar
+*.crx
+*.pem
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (caso adicione ferramentas no futuro)
+node_modules/
+package-lock.json
+.env
+.env.local

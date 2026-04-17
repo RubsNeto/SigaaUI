@@ -17,6 +17,36 @@
     };
 
     /**
+     * Escapa HTML para uso seguro dentro de innerHTML como texto.
+     * Previne XSS ao injetar dados extraídos do DOM SIGAA.
+     * @param {string|number|null|undefined} s
+     * @returns {string}
+     */
+    S.escapeHtml = function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
+    /**
+     * Escapa valor para uso seguro dentro de atributos HTML entre aspas duplas.
+     * @param {string|number|null|undefined} s
+     * @returns {string}
+     */
+    S.escapeAttr = function escapeAttr(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    };
+
+    /**
      * Retorna o valor de um atributo do primeiro elemento que casa com o seletor.
      * @param {string} sel  — Seletor CSS
      * @param {string} attr — Nome do atributo
@@ -116,7 +146,7 @@
             '<div id="sr-toast-title" style="color:' + accentColor + '">' +
             (isError ? 'Acesso negado' : 'Aviso') +
             '</div>' +
-            '<div id="sr-toast-msg">' + msgs.join('<br>') + '</div>' +
+            '<div id="sr-toast-msg">' + msgs.map(S.escapeHtml).join('<br>') + '</div>' +
             '</div>' +
             '<button id="sr-toast-close" title="Fechar">&times;</button>' +
             '</div>' +

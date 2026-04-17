@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "SIGAA UFJ - Redesign Moderno",
-  "version": "3.1.0",
-  "description": "Redesign moderno do portal SIGAA UFJ",
-  "author": "Rubens Neto",
+  "name": "SigaaUI - Redesign Moderno do SIGAA",
+  "version": "3.2.0",
+  "description": "Interface moderna para o portal SIGAA (UFJ e UFG): dashboard, notas e matrícula redesenhados. 100% client-side.",
+  "homepage_url": "https://github.com/RubsNeto/SigaaUI",
   "browser_specific_settings": {
     "gecko": {
       "id": "sigaaui@rubsneto",
